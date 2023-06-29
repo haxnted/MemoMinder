@@ -4,17 +4,17 @@
 winexe
 C#
 .cs
-D:\programming\MemoMinder\obj\Debug\net6.0-windows\
+D:\programming\c#\начальное окно\MemoMinder\MemoMinder\obj\Debug\net6.0-windows\
 MemoMinder
 none
 false
 TRACE;DEBUG;NET;NET6_0;NETCOREAPP
-D:\programming\MemoMinder\App.xaml
-11407045341
+D:\programming\c#\начальное окно\MemoMinder\MemoMinder\App.xaml
+32099336111
 
-5-492780766
+10-1233087134
 1941709816142
-MainWindow.xaml;
+AllMemoApp\MemoBrowser.xaml;MainWindow.xaml;SettingsApp\SettingsWindow.xaml;
 
-False
+True
 

@@ -5,8 +5,81 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MemoMinder"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Memo" Height="250" Width="200" MinWidth="200" MinHeight="200" 
+        WindowStyle="None" AllowsTransparency="True" KeyDown="WindowKeyDown" MouseDown="WindowMoveDown">
+    
+    <!--keydown="window_keydown" sizechanged="window_sizechanged" mousedown="window_mousedown"-->
 
+    <Grid>
+        <Grid.RowDefinitions >
+            <RowDefinition x:Name="windowPanelDefinition" Height="35" />
+            <RowDefinition x:Name="caption" Height="25" />
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Column="0" x:Name="GridwindowPanel" >
+            <!--MouseDown="Window_MouseDown"-->
+            <!--window menu -->
+            <StackPanel  Grid.Column="0" Orientation="Horizontal" >
+                <Button x:Name="allMemoButton" Click="ShowAllMemo" Height="15" Width="15" BorderThickness="0" Margin="0,0,5,0">
+                    <Button.Background>
+                        <ImageBrush ImageSource="/all_memo.png"/>
+                    </Button.Background>
+                </Button>
+
+                <Button x:Name="createMemoButton" Click="CreateWindow" Height="15" Width="15" BorderThickness="0" Margin="0,0,5,0">
+                    <Button.Background>
+                        <ImageBrush ImageSource="/create_memo.png"/>
+                    </Button.Background>
+
+                </Button>
+
+                <Button x:Name="toggleMemoButton" Click="ToggleMemo" Height="15" Width="15" BorderThickness="0" Margin="0,0,5,0">
+                    <Button.Background>
+                        <ImageBrush ImageSource="/mount_the_window.png"/>
+                    </Button.Background>
+                </Button>
+                <Button x:Name="showSettingsButton" Height="15" Width="15" BorderThickness="0" Margin="0,0,5,0" Click="ShowSettings">
+                    <Button.Background>
+                        <ImageBrush ImageSource="/settings.png" />
+                    </Button.Background>
+                </Button>
+                <!--Click="ShowSettings"-->
+
+            </StackPanel>
+            <!--window-->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Right" >
+                <Button x:Name="hiddenWindowButton" BorderThickness="0"  Height="15" Width="15" Click="HiddenWindow">
+                    <Button.Background>
+                        <ImageBrush ImageSource="/hidden_window.png"/>
+                    </Button.Background>
+                </Button>
+                <Button x:Name="maximizeWindowButton" BorderThickness="0"  Height="15" Width="15" Click="MaximizeWindow">
+                    <Button.Background>
+                        <ImageBrush ImageSource="/fullsize_window.png" />
+                    </Button.Background>
+                </Button>
+                <Button x:Name="closeWindowButton" BorderThickness="0"  Height="15" Width="15" Click="CloseWindow">
+                    <Button.Background>
+                        <ImageBrush ImageSource="/close_window.png"/>
+                    </Button.Background>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!--caption-->
+        <TextBox x:Name="captionMemo" Grid.Row="1" Grid.Column="0" BorderThickness="0" FontSize="17" Background="Transparent" VerticalAlignment="Center"  FontWeight="Bold">Заголовок</TextBox>
+        <!--TextDecorations-->
+
+        <!--textbox-->
+        <Grid Grid.Row="2" Grid.ColumnSpan="2">
+            <Grid.RowDefinitions>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+
+            <TextBox  x:Name="textbox"  Grid.Row="1" Margin="5,5,5,5" BorderThickness="0"
+                      VerticalScrollBarVisibility="Disabled"  
+                      Foreground="#FFDA1C1C" TextChanged="textbox_TextChanged"/>
+        </Grid>
     </Grid>
 </Window>
