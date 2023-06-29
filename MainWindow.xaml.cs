@@ -31,11 +31,16 @@ namespace MemoMinder
         private double SavedTop { get; set; }
         private double SavedHeight { get; set; }
         private double SavedWidth { get; set; }
+        private string LastOpenedName { get; set; }
         
         public MainWindow() //constructor for the default window
         {
             InitializeComponent();
-            dataMemo = fileOrg.DeserializeSettings(fileOrg.GetLastMemo());
+
+            LastOpenedName = fileOrg.GetLastOpenedNote();
+
+            dataMemo = fileOrg.DeserializeSettings(LastOpenedName);
+
             InitializeWindow(dataMemo);
         }
         public MainWindow(DataMemo memo) //constructor for open window in folder Memo

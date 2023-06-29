@@ -1,12 +1,10 @@
-﻿using System.IO;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Windows;
+using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Windows;
 using System.Windows.Media;
-using System.Windows.Markup;
-using System.Windows.Shapes;
 
 
 namespace MemoMinder
@@ -14,11 +12,14 @@ namespace MemoMinder
     internal class FileOrganization
     {
         private string PathAppData { get;  set; }
-        private List<string> MemoFiles { get; set; }
+        private List<string> MemoFiles { get; set; 
+        }
+        private readonly string NameFile = "\\LastOpenedNote.json";
         public FileOrganization() 
         {
             PathAppData = GetPath();
             MemoFiles = GetFilesInPath();
+            CheckExistingPaths(PathAppData);
         }
     
         public List<string>? GetFilesInPath()
@@ -48,13 +49,25 @@ namespace MemoMinder
 
             return files;
         }
-        public void SerializateDataWindow(string nameLastOpenedFile)
+
+        public void SetLastOpenedNote(string nameLastOpenedFile)
         {
             DataWindow datawindow = new DataWindow(); 
             datawindow.LastOpenedFile = nameLastOpenedFile;
 
             string jsonString = JsonSerializer.Serialize(datawindow);
-            File.WriteAllText(PathAppData + "LastOpenedWindow.json", jsonString);
+            File.WriteAllText(PathAppData + NameFile, jsonString);
+            MessageBox.Show(PathAppData + NameFile);
+        }
+
+        public string GetLastOpenedNote()
+        {
+            string jsonString = File.ReadAllText(PathAppData + NameFile);
+
+            DataWindow dataWindow = JsonSerializer.Deserialize<DataWindow>(jsonString);
+            
+            return dataWindow.LastOpenedFile;
+
         }
         private void CreateDefaultNote()
         {
@@ -82,20 +95,28 @@ namespace MemoMinder
             };
             SerializateSettings(memo, "Note", true);
         }
-        private void CreateFolders(string path)
+        private void CheckExistingPaths(string path)
         {
-            if (Directory.Exists(path))
+            if (!Directory.Exists(path))
             {
-                Directory.CreateDirectory(path);
-                File.Create(path + "LastOpenedWindow.json");
+                Directory.CreateDirectory(path); 
             }
-            Directory.CreateDirectory(path + "\\Backgrounds");
+            if (!File.Exists(path + "LastOpenedNote.json"))
+            {
+                File.Create(path + "LastOpenedNote.json");
+
+                SetLastOpenedNote("LastOpenedNote.json");
+            }
+
+            if(Directory.Exists(path + "\\Backgrounds"))
+            {
+                Directory.CreateDirectory(path + "\\Backgrounds");
+            }
         
             if (!Directory.Exists(path + "\\Notes"))
             {
                 Directory.CreateDirectory(path + "\\Notes");
 
-                //Create default note, you can change fields this method.
                 CreateDefaultNote();
             }
         }
@@ -105,7 +126,6 @@ namespace MemoMinder
             string NameFolder = "MemoMinder"; //NameFolder is main folder project
             string resPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), NameFolder);
 
-            CreateFolders(resPath); 
             return resPath;
 
         }
@@ -155,12 +175,14 @@ namespace MemoMinder
                     index++;
                 }
                 filename += nameFile + Convert.ToString(index) + ".json";
+                SetLastOpenedNote(nameFile + Convert.ToString(index));
             }
             else
             {
                 filename = PathAppData + $"Notes\\{nameFile}" + "json";
-                    
+                SetLastOpenedNote(nameFile);
             }
+
             SaveDataToFile(data, filename);
  
 
