@@ -11,6 +11,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Media.Media3D;
 using System.Windows.Shapes;
 
 namespace MemoMinder.AllMemoApp
@@ -22,6 +23,7 @@ namespace MemoMinder.AllMemoApp
     {
         FileOrganization fileorg = new FileOrganization();
         public List<string> MemoFiles { get; private set; }
+        private int TotalColumns { get; set; }
         public MemoBrowser()
         {
             InitializeComponent();
@@ -38,22 +40,29 @@ namespace MemoMinder.AllMemoApp
                 int middle = length / 2;
                 int height = middle;
                 int width = middle;
-
+                TotalColumns = width;
+                MessageBox.Show($"Size window:\nHeight: {height}\nWidth:{width}");
                 CreateGrid(width, height);
+                return;
             }
-            if(length == 1 || length == 2)
+            if(length == 1 || length == 2 || length == 3)
             {
-                int height = 1;
-                int width = 1;
+                int height = 2;
+                int width = 2;
+                TotalColumns = width;
+                MessageBox.Show($"Size window:\nHeight: {height}\nWidth:{width}");
                 CreateGrid(width, height);
+                return;
             }
             else
             {
                 int middle = (length - 1) / 2;
                 int height = middle;
                 int width = middle + 1;
-
+                TotalColumns = width;
+                MessageBox.Show($"Size window:\nHeight: {height}\nWidth:{width}");
                 CreateGrid(width, height);
+                return;
             }
 
         }
@@ -61,18 +70,18 @@ namespace MemoMinder.AllMemoApp
         {
             Grid gridAllMemo = GridAllMemo;
 
-            int HeightWindow = (int)height * 200; //140 - MinHeight
+            int HeightWindow = (int)height * 200; //140 - Mi+9nHeight
             int WidthWindow = (int)width * 200; // 100 - MinWidth
 
-            Height = HeightWindow;
-            Width = WidthWindow;
+            Height = HeightWindow + 38;
+            Width = WidthWindow +15;
             int k = 0;
-            for (int i = 0; i < (int)height; i++)
+            for (int i = 0; i <= (int)height; i++)
             {
                 gridAllMemo.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(HeightWindow / (int)height) });
             }
 
-            for (int j = 0; j < (int)width; j++)
+            for (int j = 0; j <= (int)width; j++)
             {
                 gridAllMemo.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(WidthWindow / (int)width) });
             }
@@ -91,7 +100,7 @@ namespace MemoMinder.AllMemoApp
                         MinHeight = 140,
                         MinWidth = 100,
                         Background = new SolidColorBrush(Colors.Black),
-                        CornerRadius = new CornerRadius(10),
+                        //CornerRadius = new CornerRadius(10),
                         Margin = new Thickness(0)
                     };
                     Button button = new Button()
@@ -102,6 +111,14 @@ namespace MemoMinder.AllMemoApp
 
                     button.Click += OpenMemo;
                     
+
+                    Grid.SetRow(border, i);
+                    Grid.SetColumn(border, j);
+
+                    Grid.SetRow(button, i);
+                    Grid.SetColumn(button, j);
+
+
                     if (!string.IsNullOrEmpty(memo.BackgroundWindowColorPath))
                     {
                         ImageBrush imageBrush = new ImageBrush();
@@ -113,15 +130,12 @@ namespace MemoMinder.AllMemoApp
                         border.Background = memo.BackgroundWindow;
                     }
 
-                    Grid.SetRow(border, i);
-                    Grid.SetColumn(border, j);
+                    Grid grid = new Grid {
+                        Margin = new Thickness(10,20,10,10)
+                    };
 
-                    Grid.SetRow(button, i);
-                    Grid.SetColumn(button, j);
-
-
-                    Grid grid = new Grid();
-                    grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(25) });
+                    
+                    grid.RowDefinitions.Add(new RowDefinition() { Height = memo.IsCaptionActive == true ? new GridLength(25 ) : new GridLength(0) });
                     grid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(1, GridUnitType.Star) });
 
                     Label captionLabel = new Label()
@@ -129,15 +143,37 @@ namespace MemoMinder.AllMemoApp
                         FontWeight = FontWeights.Bold,
                         Content = memo.CaptionText,
                         FontSize = 13.0,
+                        BorderThickness = new Thickness(0),
+                        FontFamily = memo.CaptionFontFamily,
                         VerticalAlignment = VerticalAlignment.Top,
                         HorizontalAlignment = HorizontalAlignment.Center,
                     };
                     grid.Children.Add(captionLabel);
                     Grid.SetRow(captionLabel, 0);
 
-                    Label contentLabel = new Label() { Content = memo.MemoText };
+                    TextBox contentLabel = new TextBox()
+                    {
+                        Margin = new Thickness(5),
+                        Text = memo.MemoText,
+                        BorderThickness = new Thickness(0),
+                        TextWrapping = TextWrapping.Wrap,
+                        FontSize = 10,
+                        FontFamily = memo.TextBoxfontFamily,
+                        
+                    };
                     grid.Children.Add(contentLabel);
                     Grid.SetRow(contentLabel, 1);
+
+                    if (!string.IsNullOrEmpty(memo.BackgroundTextBoxPath))
+                    {
+                        ImageBrush imageBrush = new ImageBrush();
+                        imageBrush.ImageSource = new BitmapImage(new Uri(memo.BackgroundTextBoxPath));
+                        contentLabel.Background = imageBrush;
+                    }
+                    else
+                    {
+                        contentLabel.Background = memo.BackgroundTextBox;
+                    }
 
                     border.Child = grid;
                     gridAllMemo.Children.Add(border);
@@ -148,21 +184,29 @@ namespace MemoMinder.AllMemoApp
 
                     if (k == MemoFiles.Count)
                     {
+                        MessageBox.Show("Exit");
                         return;
                     }
                 }
                 if (k == MemoFiles.Count)
                 {
+                    MessageBox.Show("Exit");
                     return;
                 }
             }
         }
+       
         private void OpenMemo(object sender, RoutedEventArgs e)
         {
+
             DataMemo memo = new DataMemo();
             Button button = (Button)sender;
             int row = Grid.GetRow(button);
             int column = Grid.GetColumn(button);
+
+            int number = row * TotalColumns + column;
+
+            MessageBox.Show(number.ToString());
 
             Border border = null;
 
@@ -180,15 +224,11 @@ namespace MemoMinder.AllMemoApp
                 Label label = FindLabelInBorder(border);
                 if (label != null)
                 {
-                    string labelText = label.Content.ToString();
-                    MessageBox.Show(labelText);
-                    
-                    memo = fileorg.DeserializeSettings(labelText);
-
+                    fileorg.SetLastOpenedNote(MemoFiles[number]);
                 }
             }
-
-            MainWindow main = new MainWindow(memo);
+            this.Close();
+            MainWindow main = new MainWindow();
             main.Show();
         }
 

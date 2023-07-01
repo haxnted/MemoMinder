@@ -23,10 +23,12 @@ namespace MemoMinder.SettingsApp
         private DataMemo dataMemo;
         private readonly MainWindow mainWindow;
         private Dictionary<int, FontFamily> fontDictionary = new Dictionary<int, FontFamily>();
-        public SettingsWindow(MainWindow mainWindow, DataMemo dataMemo)
+        private string LastOpenedNote;
+        public SettingsWindow(MainWindow mainWindow, DataMemo dataMemo, string LastOpenedNote)
         {
             this.mainWindow = mainWindow;
             this.dataMemo = dataMemo;
+            this.LastOpenedNote = LastOpenedNote;
             InitializeComponent();
             LoadDictionary(fontDictionary);
             Initialize();
@@ -63,10 +65,12 @@ namespace MemoMinder.SettingsApp
 
 
             FileOrganization fileOrg = new FileOrganization();
-            fileOrg.SerializateSettings(dataMemo);
+            FileOrganization.IsSaveName = true;
+            fileOrg.SerializateSettings(dataMemo, LastOpenedNote);
             mainWindow.dataMemo = dataMemo;
+
+            this.Close();
             mainWindow.Show();
-            Close();
             
         }
         private void ApplyBackgroundWindow()

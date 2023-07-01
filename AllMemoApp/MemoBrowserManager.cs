@@ -1,41 +1,42 @@
-﻿using System;
+﻿using MemoMinder.SettingsApp;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MemoMinder.SettingsApp
+namespace MemoMinder
 {
-    public class SettingsWindowManager
+    internal class MemoBrowserManager
     {
-        private static SettingsWindowManager? instance;
+        private static MemoBrowserManager? instance;
         private int activeWindowsCount;
 
-        private SettingsWindowManager()
+        private MemoBrowserManager()
         {
             activeWindowsCount = 0;
         }
 
-        public static SettingsWindowManager Instance
+        public static MemoBrowserManager Instance
         {
             get
             {
                 if (instance == null)
                 {
-                    instance = new SettingsWindowManager();
+                    instance = new MemoBrowserManager();
                 }
                 return instance;
             }
         }
 
-        public bool CanOpenSettingsWindow()
+        public bool CanOpenAllMemoWindow()
         {
             return activeWindowsCount < 1;
         }
 
         public void IncrementWindowCount()
         {
-            
+
             activeWindowsCount++;
         }
 

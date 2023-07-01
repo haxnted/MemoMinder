@@ -5,12 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MemoMinder"
         mc:Ignorable="d"
-        Title="Memo" Height="250" Width="200" MinWidth="200" MinHeight="200" 
+        Title="Memo" Height="150" Width="100" MinWidth="140" MinHeight="100" 
         WindowStyle="None" AllowsTransparency="True" KeyDown="WindowKeyDown" MouseDown="WindowMoveDown">
-    
-    <!--keydown="window_keydown" sizechanged="window_sizechanged" mousedown="window_mousedown"-->
+
 
     <Grid>
+        
         <Grid.RowDefinitions >
             <RowDefinition x:Name="windowPanelDefinition" Height="35" />
             <RowDefinition x:Name="caption" Height="25" />
@@ -78,8 +78,8 @@
             </Grid.RowDefinitions>
 
             <TextBox  x:Name="textbox"  Grid.Row="1" Margin="5,5,5,5" BorderThickness="0"
-                      VerticalScrollBarVisibility="Disabled"  
-                      Foreground="#FFDA1C1C" TextChanged="textbox_TextChanged"/>
+                      VerticalScrollBarVisibility="Hidden"  AcceptsReturn="True" TextWrapping="Wrap"
+                      Foreground="#FFDA1C1C" TextChanged="textbox_TextChanged" />
         </Grid>
     </Grid>
 </Window>

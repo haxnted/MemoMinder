@@ -32,10 +32,12 @@ namespace MemoMinder
         private double SavedHeight { get; set; }
         private double SavedWidth { get; set; }
         private string LastOpenedName { get; set; }
-        
+        private bool isPointAdd { get; set; } = false;
+
         public MainWindow() //constructor for the default window
         {
             InitializeComponent();
+            FileOrganization.IsCreatedNewWindow = false;
 
             LastOpenedName = fileOrg.GetLastOpenedNote();
 
@@ -46,6 +48,7 @@ namespace MemoMinder
         public MainWindow(DataMemo memo) //constructor for open window in folder Memo
         {
             InitializeComponent();
+
             InitializeWindow(memo);
         }
         private void ToggleMemo(object sender, RoutedEventArgs e)
@@ -65,11 +68,27 @@ namespace MemoMinder
         }
         private void ShowAllMemo(object sender, RoutedEventArgs e)
         {
-            MemoBrowser memoBrowser = new MemoBrowser();
-            memoBrowser.Show();
+            //Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
+            if (MemoBrowserManager.Instance.CanOpenAllMemoWindow())
+            {
+                MemoBrowser memoBrowser = new MemoBrowser();
+                memoBrowser.Closed += (s,args) => MemoBrowserManager.Instance.DecrementWindowCount();
+                MemoBrowserManager.Instance.IncrementWindowCount();
+                memoBrowser.Show();
+                //this.Close();
+            }
+            else
+            {
+                return;
+            }
         }
         private void CloseWindow(object sender, RoutedEventArgs e)
         {
+            dataMemo.MemoText = textbox.Text;
+            dataMemo.CaptionText = captionMemo.Text;
+            FileOrganization.IsSaveName = true;
+            fileOrg.SerializateSettings(dataMemo, LastOpenedName);
             this.Close();
         }
         private void WindowKeyDown(object sender, KeyEventArgs e)
@@ -102,10 +121,20 @@ namespace MemoMinder
         }
         private void ShowSettings(object sender, RoutedEventArgs e)
         {
-            dataMemo = fileOrg.DeserializeSettings(dataMemo.CaptionText);
-            SettingsWindow window = new SettingsWindow(this, dataMemo);
-            fileOrg.SerializateSettings(dataMemo);
-            window.Show();
+            if (SettingsWindowManager.Instance.CanOpenSettingsWindow())
+            {
+                dataMemo = fileOrg.DeserializeSettings(LastOpenedName);
+                SettingsWindow window = new SettingsWindow(this, dataMemo, LastOpenedName);
+                window.Closed += (s, args) => SettingsWindowManager.Instance.DecrementWindowCount();
+                SettingsWindowManager.Instance.IncrementWindowCount();
+                window.Show();
+            }
+            else
+            {
+                return;
+                
+            }
+
         }
         private void MaximizeWindow(object sender, RoutedEventArgs e)
         {
@@ -139,13 +168,14 @@ namespace MemoMinder
         }
         private void CreateWindow(object sender, RoutedEventArgs e)
         {
-            MainWindow mainWindow = new MainWindow();
-            mainWindow.Show();
+            
+            fileOrg.CreateDefaultNote();
+
         }
         private void InitializeWindow(DataMemo data)
         {
             
-            if (data.BackgroundWindowColorPath != null)
+            if (!string.IsNullOrEmpty(data.BackgroundWindowColorPath))
             {
                 BitmapImage bitmap = new BitmapImage(new Uri(data.BackgroundWindowColorPath));
                 ImageBrush imageBrush = new ImageBrush(bitmap);
@@ -156,7 +186,7 @@ namespace MemoMinder
                 Background = data.BackgroundWindow;
             }
 
-            if (data.BackgroundTextBoxPath != null)
+            if (!string.IsNullOrEmpty(data.BackgroundTextBoxPath))
             {
                 BitmapImage bitmap = new BitmapImage(new Uri(data.BackgroundTextBoxPath));
                 ImageBrush imageBrush = new ImageBrush(bitmap);
@@ -166,12 +196,19 @@ namespace MemoMinder
             {
                 textbox.Background = dataMemo.BackgroundTextBox;
             }
-
+            if (data.IsCaptionActive)
+            {
+                caption.Height = new GridLength(25);
+            }
+            else
+            {
+                caption.Height = new GridLength(0);
+            }
             textbox.HorizontalScrollBarVisibility = (ScrollBarVisibility)(data.VerticalScrollBarVisibility == true ? Visibility.Visible : Visibility.Hidden);
             textbox.Text = data.MemoText;           
             textbox.FontSize = data.TextBoxFontSize;
             textbox.Foreground = data.TextBoxForeground;
-            textbox.Margin = new System.Windows.Thickness(data.TextBoxMargin);
+            textbox.Margin = new Thickness(data.TextBoxMargin);
             textbox.FontFamily = data.TextBoxfontFamily;
             captionMemo.FontFamily = data.CaptionFontFamily;
             captionMemo.FontSize = data.CaptionFontSize;
@@ -185,7 +222,45 @@ namespace MemoMinder
 
         private void textbox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            //tempNameFile = textbox.Text;
+            string Text = textbox.Text;
+            int CountCircles = 0;
+            bool isCheacked = Text.Contains(".-3");
+
+
+            int previousCursorPosition = textbox.SelectionStart;
+
+            for (int i = 0; i < Text.Length - 1; i++)
+            {
+                if (i + 2 <= Text.Length - 1)
+                {
+                    string tempText = "";
+                    if (Text[i] == '.' && Text[i + 1] == '-' && int.TryParse(Convert.ToString(Text[i + 2]), out CountCircles))
+                    {
+                        if (CountCircles <= 0) { return; }
+                        else
+                        {
+                            for (int j = 0; j < CountCircles; j++)
+                            {
+                                tempText = tempText + "● " + '\n';
+                            }
+                            Text = Text.Substring(0, i) + tempText + Text.Substring(i + 3);
+                        }
+                    }
+                }
+            }
+
+            textbox.Text = Text;
+
+
+            if (previousCursorPosition <= Text.Length)
+            {
+                textbox.SelectionStart = previousCursorPosition;
+            }
+            else
+            {
+                textbox.SelectionStart = Text.Length;
+            }
         }
+
     }
 }
