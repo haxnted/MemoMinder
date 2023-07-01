@@ -223,7 +223,7 @@ namespace MemoMinder.SettingsApp
         }
         private void ApplyUnderlineMemo()
         {
-            bool isChecked = isCaptionActiveSettings.IsChecked ?? false;
+            bool isChecked = isUnderlineActiveSettings.IsChecked ?? false;
             if (isChecked != dataMemo.IsUnderlineCaption)
             {
                 if (isChecked)
