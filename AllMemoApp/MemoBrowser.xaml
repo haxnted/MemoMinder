@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MemoMinder.AllMemoApp"
         mc:Ignorable="d"
-        Title="your notes" Height="450" Width="790" ResizeMode="CanResize" ><!--WindowState="Maximized"-->
+        Title="your notes" Height="450" Width="790" Background="#FF96A28E" ><!--WindowState="Maximized"-->
     <Window.Resources>
         <Style TargetType="Button">
             <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"/>
@@ -39,7 +39,7 @@
         </Style>
     </Window.Resources>
 
-    <Grid x:Name="GridAllMemo" Background="AntiqueWhite" >
+    <Grid x:Name="GridAllMemo">
 
 
     </Grid>

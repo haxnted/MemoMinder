@@ -6,14 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Media.Media3D;
-using System.Windows.Shapes;
-
 namespace MemoMinder.AllMemoApp
 {
     /// <summary>
@@ -33,63 +27,40 @@ namespace MemoMinder.AllMemoApp
 
         private void CreateTable()
         {
-         
             int length = MemoFiles.Count;
-            if (length % 2 == 0)
-            {
-                int middle = length / 2;
-                int height = middle;
-                int width = middle;
-                TotalColumns = width;
-                MessageBox.Show($"Size window:\nHeight: {height}\nWidth:{width}");
-                CreateGrid(width, height);
-                return;
-            }
-            if(length == 1 || length == 2 || length == 3)
-            {
-                int height = 2;
-                int width = 2;
-                TotalColumns = width;
-                MessageBox.Show($"Size window:\nHeight: {height}\nWidth:{width}");
-                CreateGrid(width, height);
-                return;
-            }
-            else
-            {
-                int middle = (length - 1) / 2;
-                int height = middle;
-                int width = middle + 1;
-                TotalColumns = width;
-                MessageBox.Show($"Size window:\nHeight: {height}\nWidth:{width}");
-                CreateGrid(width, height);
-                return;
-            }
+            int maxColumnsInRow = 4;
 
+            int rows = (int)Math.Ceiling((double)length / maxColumnsInRow);
+            int columns = Math.Min(maxColumnsInRow, length);
+
+            TotalColumns = columns;
+            CreateGrid(columns, rows);
         }
-        private void CreateGrid(object width, object height)
+
+        private void CreateGrid(int columnDefinitions, int rowDefinitions)
         {
             Grid gridAllMemo = GridAllMemo;
+            const int SIZENOTE = 200;
+            int heightWindow = rowDefinitions * SIZENOTE;
+            int widthWindow = columnDefinitions * SIZENOTE;
 
-            int HeightWindow = (int)height * 200; //140 - Mi+9nHeight
-            int WidthWindow = (int)width * 200; // 100 - MinWidth
+            Height = heightWindow + 38;
+            Width = Math.Min(widthWindow, SIZENOTE * 4) + 15;
 
-            Height = HeightWindow + 38;
-            Width = WidthWindow +15;
             int k = 0;
-            for (int i = 0; i <= (int)height; i++)
+            for (int i = 0; i < rowDefinitions; i++)
             {
-                gridAllMemo.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(HeightWindow / (int)height) });
+                gridAllMemo.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(SIZENOTE) });
             }
 
-            for (int j = 0; j <= (int)width; j++)
+            for (int j = 0; j < columnDefinitions; j++)
             {
-                gridAllMemo.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(WidthWindow / (int)width) });
+                gridAllMemo.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(SIZENOTE) });
             }
 
-
-            for (int i = 0; i < (int)height; i++)
+            for (int i = 0; i < rowDefinitions; i++)
             {
-                for (int j = 0; j < (int)width; j++)
+                for (int j = 0; j < columnDefinitions; j++)
                 {
                     DataMemo memo = new DataMemo();
 
@@ -100,8 +71,6 @@ namespace MemoMinder.AllMemoApp
                         MinHeight = 140,
                         MinWidth = 100,
                         Background = new SolidColorBrush(Colors.Black),
-                        //CornerRadius = new CornerRadius(10),
-                        Margin = new Thickness(0)
                     };
                     Button button = new Button()
                     {
@@ -111,13 +80,11 @@ namespace MemoMinder.AllMemoApp
 
                     button.Click += OpenMemo;
                     
-
                     Grid.SetRow(border, i);
                     Grid.SetColumn(border, j);
 
                     Grid.SetRow(button, i);
                     Grid.SetColumn(button, j);
-
 
                     if (!string.IsNullOrEmpty(memo.BackgroundWindowColorPath))
                     {
@@ -184,13 +151,11 @@ namespace MemoMinder.AllMemoApp
 
                     if (k == MemoFiles.Count)
                     {
-                        MessageBox.Show("Exit");
                         return;
                     }
                 }
                 if (k == MemoFiles.Count)
                 {
-                    MessageBox.Show("Exit");
                     return;
                 }
             }
@@ -198,15 +163,11 @@ namespace MemoMinder.AllMemoApp
        
         private void OpenMemo(object sender, RoutedEventArgs e)
         {
-
-            DataMemo memo = new DataMemo();
             Button button = (Button)sender;
             int row = Grid.GetRow(button);
             int column = Grid.GetColumn(button);
 
             int number = row * TotalColumns + column;
-
-            MessageBox.Show(number.ToString());
 
             Border border = null;
 

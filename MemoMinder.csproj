@@ -8,23 +8,31 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="all_memo.png" />
     <None Remove="close_window.png" />
     <None Remove="create_memo.png" />
     <None Remove="fullsize_window.png" />
     <None Remove="hidden_window.png" />
     <None Remove="mount_the_window.png" />
+    <None Remove="Resources\all_memo.png" />
+    <None Remove="Resources\close_window.png" />
+    <None Remove="Resources\create_memo.png" />
+    <None Remove="Resources\delete_memo.png" />
+    <None Remove="Resources\fullsize_window.png" />
+    <None Remove="Resources\hidden_window.png" />
+    <None Remove="Resources\mount_the_window.png" />
+    <None Remove="Resources\settings.png" />
     <None Remove="settings.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="all_memo.png" />
-    <Resource Include="close_window.png" />
-    <Resource Include="create_memo.png" />
-    <Resource Include="fullsize_window.png" />
-    <Resource Include="hidden_window.png" />
-    <Resource Include="mount_the_window.png" />
-    <Resource Include="settings.png" />
+    <Resource Include="Resources\all_memo.png" />
+    <Resource Include="Resources\close_window.png" />
+    <Resource Include="Resources\create_memo.png" />
+    <Resource Include="Resources\delete_memo.png" />
+    <Resource Include="Resources\fullsize_window.png" />
+    <Resource Include="Resources\hidden_window.png" />
+    <Resource Include="Resources\mount_the_window.png" />
+    <Resource Include="Resources\settings.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,7 +45,7 @@
 
   <ItemGroup>
     <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
+      <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>

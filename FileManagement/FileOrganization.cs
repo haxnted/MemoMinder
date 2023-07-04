@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Markup;
@@ -14,12 +17,12 @@ namespace MemoMinder
     {
         private string PathAppData { get;  set; }
         private List<string> MemoFiles { get; set; }
-        static public bool IsCreatedNewWindow { get; set; }
-        static public bool IsSaveName { get; set; }
 
         private readonly string NameFile = "\\LastOpenedNote.json";
         public FileOrganization() 
         {
+            MemoFiles = new List<string>();
+
             PathAppData = GetPath();
             CheckExistingPaths(PathAppData);
             MemoFiles = GetFilesInPath();
@@ -27,9 +30,11 @@ namespace MemoMinder
     
         public List<string>? GetFilesInPath()
         {
+            string folderNotes = Path.Combine(PathAppData + "\\Notes");
+
             List<string> files = new List<string>();
 
-            string[] tempfiles = Directory.GetFiles(PathAppData + "\\Notes");
+            string[] tempfiles = Directory.GetFiles(folderNotes);
             
             int tempFilesLength = tempfiles.Length;
             
@@ -38,10 +43,9 @@ namespace MemoMinder
                 CreateDefaultNote();
             }
 
-
             if (PathAppData != null)
             {
-                var dir = new DirectoryInfo(PathAppData +"\\Notes");
+                var dir = new DirectoryInfo(folderNotes);
                 var fileList = dir.GetFiles();
 
                 foreach (var file in fileList)
@@ -49,25 +53,33 @@ namespace MemoMinder
                     files.Add(System.IO.Path.GetFileNameWithoutExtension(file.FullName));
                 }
             }
-
             return files;
         }
 
         public void SetLastOpenedNote(string nameLastOpenedFile)
         {
-            DataWindow datawindow = new DataWindow(); 
+            DataWindow datawindow = new DataWindow();
             datawindow.LastOpenedFile = nameLastOpenedFile;
 
-            string jsonString = JsonSerializer.Serialize(datawindow);
-            File.WriteAllText(PathAppData + NameFile, jsonString);
-            MessageBox.Show($"SET last note: {PathAppData + NameFile}");
+            string textFromFile = JsonSerializer.Serialize(datawindow);
+
+            using (StreamWriter streamwriter = new StreamWriter(PathAppData + NameFile))
+            {
+                streamwriter.Write(textFromFile);
+                streamwriter.Close();
+            }
         }
 
         public string GetLastOpenedNote()
         {
-            string jsonString = File.ReadAllText(PathAppData + NameFile);
+            string textFromFile = "";
 
-            DataWindow dataWindow = JsonSerializer.Deserialize<DataWindow>(jsonString);
+            using (StreamReader streamreader = new StreamReader(PathAppData + NameFile))
+            {
+                textFromFile = streamreader.ReadToEnd();
+            }
+
+            DataWindow? dataWindow = JsonSerializer.Deserialize<DataWindow>(textFromFile);
             
             return dataWindow.LastOpenedFile;
 
@@ -75,28 +87,38 @@ namespace MemoMinder
 
         private void CheckExistingPaths(string path)
         {
-            if (!Directory.Exists(path))
+            string folderBackground = Path.Combine(path, "Backgrounds");
+            string folderNotes = Path.Combine(path, "Notes");
+            string pathLastOpenedFile = Path.Combine(path, "LastOpenedNote.json");
+            string pathDefaultNote = Path.Combine(path, "DefaultThemeNote.json");
+            
+            if (!Directory.Exists(path)) Directory.CreateDirectory(path); 
+            
+            if (!Directory.Exists(folderBackground)) Directory.CreateDirectory(folderBackground);
+            
+            if (!File.Exists(pathLastOpenedFile))
             {
-                Directory.CreateDirectory(path); 
+                using (var fsream = File.Create(pathLastOpenedFile))
+                {
+                    fsream.Close();
+                }
+
+                SetLastOpenedNote("");
+           
             }
 
-            if (!File.Exists(path + "\\LastOpenedNote.json"))
+           
+            if (!File.Exists(pathDefaultNote))
             {
-                File.Create(path + "\\LastOpenedNote.json");
-
-                SetLastOpenedNote("LastOpenedNote.json");
-            }
-            MessageBox.Show("Путь файла с дефолт загрузками: " + path + "\\DefaultThemeNote.json");
-            if (!File.Exists(path + "\\DefaultThemeNote.json"))
-            {
-                using (var fileStream = File.Create(path + "\\DefaultThemeNote.json"))
+                using (FileStream fileStream = File.Create(pathDefaultNote))
                 {
                     fileStream.Close();
                 }
-                DataMemo memo = new DataMemo
+
+                DataMemo dataMemo = new DataMemo
                 {
                     BackgroundWindow = Brushes.White,
-                    BackgroundTextBox = Brushes.LightGray,
+                    BackgroundTextBox = Brushes.Gray,
                     TextBoxForeground = Brushes.Black,
                     CaptionForeground = Brushes.Black,
                     TextBoxfontFamily = new FontFamily("Arial"),
@@ -112,49 +134,54 @@ namespace MemoMinder
                     IsCaptionActive = true,
                     CaptionFontSize = 18.0,
                     IsUnderlineCaption = true,
-                    HeightWindow = 400.0,
-                    WidthWindow = 600.0
+                    HeightWindow = 200.0,
+                    WidthWindow = 200.0
                 };
-                IsCreatedNewWindow = false;
-                IsSaveName = false;
-                //написать отдельную сериализацию!!!
-                string filename = PathAppData + $"\\DefaultThemeNote" + ".json";
 
+                SaveDataToFile(dataMemo, pathDefaultNote);
 
-
-                SaveDataToFile(memo, filename);
-                //SerializateSettings(memo, "DefaultThemeNote");
             }
-            if (!Directory.Exists(path + "\\Backgrounds"))
+            if (!Directory.Exists(folderNotes))
             {
-                Directory.CreateDirectory(path + "\\Backgrounds");
-            }
-        
-            if (!Directory.Exists(path + "\\Notes"))
-            {
-                Directory.CreateDirectory(path + "\\Notes");
+                Directory.CreateDirectory(folderNotes);
+
+                string jsonString = "";
+
+                using (StreamReader reader = new StreamReader(pathDefaultNote))
+                {
+                    jsonString = reader.ReadToEnd();
+                    reader.Close();
+                }
+
+                JsonSerializerOptions options = new JsonSerializerOptions();
                 
-                CreateDefaultNote();
+                options.Converters.Add(new BrushConverter());
+                options.Converters.Add(new FontFamilyConverter());
+
+                DataMemo memo = JsonSerializer.Deserialize<DataMemo>(jsonString, options);
+
+                SerializateSettings(memo, "Note", true, true);
+
             }
         }
         public void CreateDefaultNote()
         {
-            string fileName = PathAppData + $"\\DefaultThemeNote" + ".json";
+            string fileName = Path.Combine(PathAppData, "DefaultThemeNote.json");
 
-            MessageBox.Show($"Deserialize CreateDefaultNote: {fileName}");
-
-            string jsonString = File.ReadAllText(fileName);
+            string fileFromText = "";
+            using (StreamReader fileRead = new StreamReader(fileName))
+            {
+                fileFromText = fileRead.ReadToEnd();
+                fileRead.Close();
+            }
 
             JsonSerializerOptions options = new JsonSerializerOptions();
             options.Converters.Add(new BrushConverter());
             options.Converters.Add(new FontFamilyConverter());
 
-            DataMemo memo = JsonSerializer.Deserialize<DataMemo>(jsonString, options);
+            DataMemo memo = JsonSerializer.Deserialize<DataMemo>(fileFromText, options);
 
-
-            IsCreatedNewWindow = true;
-            IsSaveName = true;
-            SerializateSettings(memo, "Note");
+            SerializateSettings(memo, "Note", true, true);
 
             MainWindow mainWindow = new MainWindow(memo);
             mainWindow.Show();
@@ -162,28 +189,56 @@ namespace MemoMinder
         }
         private string GetPath()
         {
-            string NameFolder = "MemoMinder"; //NameFolder is main folder project
-            string resPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), NameFolder);
+            string NameFolder = "MemoMinder"; 
+            string resPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), NameFolder);
 
             return resPath;
-
         }
-        
+        public void DeleteFile(string fileName)
+        {
+            if (MemoFiles.Count == 1)
+            {
+                MessageBox.Show("Удалить один существующий файл нельзя");
+                return;
+            }
+            else
+            {
+                File.Delete(PathAppData + $"\\Notes\\{fileName}" + ".json");
+
+                Random random = new Random();
+                int position =  MemoFiles.IndexOf(fileName);
+                MemoFiles.RemoveAt(position);
+                int randomIndex = random.Next(0, MemoFiles.Count);
+
+                DataMemo dataMemo = new DataMemo();
+                dataMemo = DeserializeSettings(MemoFiles[randomIndex]);
+                MainWindow.dataMemo = dataMemo;
+                string nameFile = MemoFiles[randomIndex]; //Grab random file
+                SetLastOpenedNote(nameFile);
+
+
+            }
+        }
         private void SaveDataToFile(DataMemo data, string path)
         {
             JsonSerializerOptions options = new JsonSerializerOptions
             {
                 WriteIndented = true,
                 ReferenceHandler = ReferenceHandler.Preserve
-            };
-            //Brush and FontFamily cannot serialize, so i create converters to keep save data in file.
+            };      
+
             options.Converters.Add(new BrushConverter());
             options.Converters.Add(new FontFamilyConverter());
 
-            string jsonString = JsonSerializer.Serialize(data, options);
-            File.WriteAllText(path, jsonString);
+            string textToFile = JsonSerializer.Serialize(data, options);
+
+            using (StreamWriter writer = new StreamWriter(path))
+            {
+                writer.Write(textToFile);
+                writer.Close();
+            }
         }
-        public void SerializateSettings(DataMemo data, string nameFile)
+        public void SerializateSettings(DataMemo dataMemo, string nameFile, bool IsCreatedNewWindow, bool IsSaveName)
         {
             string filename;
             
@@ -197,6 +252,8 @@ namespace MemoMinder
                     index++;
                 }
                 filename += nameFile + Convert.ToString(index) + ".json";
+
+                MemoFiles.Add(nameFile + Convert.ToString(index));
                 
                 if (IsSaveName)
                 {
@@ -207,22 +264,26 @@ namespace MemoMinder
             {
                 filename = PathAppData + $"\\Notes\\{nameFile}" + ".json";
                 SetLastOpenedNote(nameFile);
+
             }
 
-            SaveDataToFile(data, filename);
+            SaveDataToFile(dataMemo, filename);
  
 
         }
         public DataMemo DeserializeSettings(string file)
         {
             string fileName = PathAppData + $"\\Notes\\{file}" + ".json";
-            
-            MessageBox.Show($"Deserialize: {fileName}");
 
             try
             {
-                string jsonString = File.ReadAllText(fileName);
-                
+                string jsonString = "";
+                using (StreamReader filestream = new StreamReader(fileName))
+                {
+                    jsonString = filestream.ReadToEnd();
+                    filestream.Close();
+                }
+
                 JsonSerializerOptions options = new JsonSerializerOptions();
                 options.Converters.Add(new BrushConverter());
                 options.Converters.Add(new FontFamilyConverter());

@@ -6,9 +6,38 @@
         xmlns:local="clr-namespace:MemoMinder.SettingsApp"
         mc:Ignorable="d"
         Title="SettingsWindow" Height="650" Width="400"
-        WindowStyle="None" Background="#52FFFFFF" AllowsTransparency="True" MouseDown="Window_MouseDown">
+        WindowStyle="None" Background="#E596A28E" AllowsTransparency="True" MouseDown="Window_MouseDown">
 
+    <Window.Resources>
         
+        <Style  TargetType="Label">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+        </Style>
+
+        <Style  TargetType="TextBox">
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style  TargetType="ComboBox">
+            <Setter Property="Grid.ColumnSpan" Value="2"/>
+            <Setter Property="FontSize" Value="10"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Background" Value="White"/>
+        </Style>
+
+        <Style  TargetType="CheckBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        
+    </Window.Resources>
+    
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="180"/>
@@ -33,58 +62,60 @@
             <RowDefinition />
             <RowDefinition />
             <RowDefinition />
+            <RowDefinition />
         </Grid.RowDefinitions>
 
-        <Label Grid.Row="0" Grid.Column="0" HorizontalAlignment="left" VerticalAlignment="center" Margin="5">background window color</Label>
-        <TextBox x:Name="backgroundWindowSettings" Grid.Row="0" Grid.Column="1" Margin="5" FontSize="10" TextChanged="backgroundWindowColorSettings_TextChanged"/>
-        <TextBox x:Name="ChangebackgroundWindowSettings" Grid.Row="0" Grid.Column="2" BorderThickness="0" Background="#FFFFFFFF" Margin="5"/>
+        <Label Grid.Row="0" Grid.Column="0">Background window</Label>
+        <TextBox x:Name="backgroundWindowSettings" Grid.Row="0" Grid.Column="1" MouseDoubleClick="backgroundWindowSettings_MouseDoubleClick"  TextChanged="backgroundWindowColorSettings_TextChanged"/>
+        <TextBox x:Name="ChangebackgroundWindowSettings" Grid.Row="0" Grid.Column="2"/>
 
-        <Label Grid.Row="1" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5">Background note</Label>
-        <TextBox x:Name="backgroundTextBoxSettings" Grid.Row="1" Grid.Column="1"  Margin="5" FontSize="10" TextChanged="backgroundTextBoxSettings_TextChanged"/>
-        <TextBox x:Name="ChangebackgroundTextBoxSettings" Grid.Row="1" Grid.Column="2" BorderThickness="0" Background="#FFFFFFFF" Margin="5"/>
+        <Label Grid.Row="1" Grid.Column="0" >Background text</Label>
+        <TextBox x:Name="backgroundTextBoxSettings" Grid.Row="1" Grid.Column="1" MouseDoubleClick="backgroundTextBoxSettings_MouseDoubleClick"   TextChanged="backgroundTextBoxSettings_TextChanged"/>
+        <TextBox x:Name="ChangebackgroundTextBoxSettings" Grid.Row="1" Grid.Column="2"/>
 
-        <Label Grid.Row="2" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5">Foreground note</Label>
-        <TextBox x:Name="textBoxForegroundSettings" Grid.Row="2" Grid.Column="1"  Margin="5" FontSize="10" Grid.ColumnSpan="2"/>
+        <Label Grid.Row="2" Grid.Column="0">Caption foreground</Label>
+        <TextBox x:Name="captionForegroundSettings" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2"/>
 
-        <Label Grid.Row="4" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5">Font type note</Label>
-        <ComboBox x:Name="fontTypeComboBox" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" FontSize="10" Margin="5" />
+        <Label Grid.Row="3" Grid.Column="0">Foreground text</Label>
+        <TextBox x:Name="textBoxForegroundSettings" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2"/>
 
-        <Label Grid.Row="5" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5">caption font family</Label>
-        <ComboBox x:Name="captionFontFamilySettings" Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Margin="5"/>
+        <Label Grid.Row="4" Grid.Column="0">Caption font family</Label>
+        <ComboBox x:Name="captionFontFamilySettings"  Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"/>
 
-        <Label Grid.Row="3" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5">Caption foreground</Label>
-        <TextBox x:Name="captionForegroundSettings" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Margin="5"/>
+        <Label Grid.Row="5" Grid.Column="0">Text font family</Label>
+        <ComboBox x:Name="fontTypeComboBox" Grid.Row="5" Grid.Column="1" BorderBrush="White" Foreground="#FF331010"  />
+        
 
-
-        <Label Grid.Row="6" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5">Font size note</Label>
-        <TextBox x:Name="fontSize" Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Margin="5"/>
-
-        <Label Grid.Row="7" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5">caption fontSize</Label>
-        <TextBox x:Name="captionFontSizeSettings" Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" Margin="5"/>
-
-        <Label Grid.Row="8" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5">Margin note</Label>
-        <TextBox x:Name="textBoxMarginSettings" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" Margin="5"/>
-
-        <Label Grid.Row="9" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5">Window height</Label>
-        <TextBox x:Name="heightWindowSettings" Grid.Row="9" Grid.Column="1" Grid.ColumnSpan="2" Margin="5" />
+        <Label Grid.Row="6" Grid.Column="0">Font size caption</Label>
+        <TextBox x:Name="captionFontSizeSettings" Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2"/>
+        <Label Grid.Row="7" Grid.Column="0">Font size text</Label>
+        <TextBox x:Name="fontSize" Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2"/>
 
 
-        <Label Grid.Row="10" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5">Window width</Label>
-        <TextBox x:Name="widthWindowSettings" Grid.Row="10" Grid.Column="1" Grid.ColumnSpan="2" Margin="5" />
+        <Label Grid.Row="8" Grid.Column="0">Margin text</Label>
+        <TextBox x:Name="textBoxMarginSettings" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="2" />
 
-        <Label Grid.Row="11" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5">Vertical scrollBar Visibility</Label>
-        <CheckBox x:Name="verticalScrollBarVisibilitySettings" Grid.Row="11" Grid.Column="1" Grid.ColumnSpan="2" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+        <Label Grid.Row="9" Grid.Column="0">Window height</Label>
+        <TextBox x:Name="heightWindowSettings" Grid.Row="9" Grid.Column="1" Grid.ColumnSpan="2" />
 
-        <Label Grid.Row="12" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5">Toggle window</Label>
-        <CheckBox x:Name="isVisibleAboveAppsSettings" Grid.Row="12" Grid.Column="1" Margin="5" VerticalAlignment="Center"/>
+        <Label Grid.Row="10" Grid.Column="0" >Window width</Label>
+        <TextBox x:Name="widthWindowSettings" Grid.Row="10" Grid.Column="1" Grid.ColumnSpan="2"/>
 
-        <Label Grid.Row="13" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5">Caption memo</Label>
-        <CheckBox x:Name="isCaptionActiveSettings" Grid.Row="13" Grid.Column="1" Margin="5"  VerticalAlignment="Center"/>
+        <Label Grid.Row="11" Grid.Column="0" >Vertical scrollBar Visibility</Label>
+        <CheckBox x:Name="verticalScrollBarVisibilitySettings" Grid.Row="11" Grid.Column="1" Grid.ColumnSpan="2" />
 
-        <Label Grid.Row="14" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5">Underline caption</Label>
-        <CheckBox x:Name="isUnderlineActiveSettings" Grid.Row="14" Grid.Column="1" Margin="5"  VerticalAlignment="Center"/>
+        <Label Grid.Row="12" Grid.Column="0">Toggle window</Label>
+        <CheckBox x:Name="isVisibleAboveAppsSettings" Grid.Row="12" Grid.Column="1"/>
 
+        <Label Grid.Row="13" Grid.Column="0">Show caption memo</Label>
+        <CheckBox x:Name="isCaptionActiveSettings" Grid.Row="13" Grid.Column="1"/>
 
-        <Button Grid.Row="15" Grid.ColumnSpan="3" Grid.Column="0"  Margin="5" Content="Submit"   Click="Submit"></Button>
+        <Label Grid.Row="14" Grid.Column="0">Underline caption</Label>
+        <CheckBox x:Name="isUnderlineActiveSettings" Grid.Row="14" Grid.Column="1" />
+        
+        <Label Grid.Row="15" Grid.Column="0">Save for default window</Label>
+        <CheckBox x:Name="isSaveTemplate" Grid.Row="15" Grid.Column="1" />
+
+        <Button Grid.Row="16" Grid.ColumnSpan="3" Grid.Column="0" Margin="5" Content="Submit" BorderThickness="0" Click="Submit"></Button>
     </Grid>
 </Window>

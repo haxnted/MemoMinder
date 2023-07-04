@@ -1,14 +1,13 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
@@ -18,11 +17,34 @@ namespace MemoMinder.SettingsApp
     /// <summary>
     /// Логика взаимодействия для SettingsWindow.xaml
     /// </summary>
+    
     public partial class SettingsWindow : Window
     {
         private DataMemo dataMemo;
         private readonly MainWindow mainWindow;
-        private Dictionary<int, FontFamily> fontDictionary = new Dictionary<int, FontFamily>();
+        private Dictionary<int, FontFamily> fontDictionary = new Dictionary<int, FontFamily>() {
+            {1, new FontFamily("Arial") },
+            {2, new FontFamily("Times New Roman") },
+            {3, new FontFamily("Verdana") },
+            {4, new FontFamily("Calibri")},
+            {5, new FontFamily("Cambria")},
+            {6, new FontFamily("Georgia")},
+            {7, new FontFamily("Helvetica")},
+            {8, new FontFamily("Lucida Sans Unicode")},
+            {9, new FontFamily("Palatino Linotype")},
+            {10, new FontFamily("Segoe UI")},
+            {11, new FontFamily("Tahoma")},
+            {12, new FontFamily("Trebuchet MS")},
+            {13, new FontFamily("Century Gothic")},
+            {14, new FontFamily("Garamond")},
+            {15, new FontFamily("Book Antiqua")},
+            {16, new FontFamily("Franklin Gothic Medium")},
+            {17, new FontFamily("Rockwell")},
+            {18, new FontFamily("Baskerville Old Face")},
+            {19, new FontFamily("Consolas")},
+            {20, new FontFamily("Courier New")},
+        };
+
         private string LastOpenedNote;
         public SettingsWindow(MainWindow mainWindow, DataMemo dataMemo, string LastOpenedNote)
         {
@@ -30,22 +52,25 @@ namespace MemoMinder.SettingsApp
             this.dataMemo = dataMemo;
             this.LastOpenedNote = LastOpenedNote;
             InitializeComponent();
-            LoadDictionary(fontDictionary);
             Initialize();
 
         }
         private void Submit(object sender, RoutedEventArgs e)
         {
-            mainWindow.Hide();
 
+            mainWindow.Hide();
             string BackWindow = backgroundWindowSettings.Text;
-            string BackTextBox = backgroundTextBoxSettings.Text; 
-           
-            if (BackWindow[0] == '#' && BackWindow.Length > 9 || 
+            string BackTextBox = backgroundTextBoxSettings.Text;
+
+            if (BackWindow[0] == '#' && BackWindow.Length > 9 ||
                 BackTextBox[0] == '#' && BackTextBox.Length > 9)
             {
                 MessageBox.Show("Неверное поле.");
                 return;
+            }
+            if (isSaveTemplate.IsChecked == true)
+            {
+                SaveDataToDefaultFile();
             }
             ApplySizeWindow();
             ApplyFontType(fontTypeComboBox);
@@ -62,20 +87,39 @@ namespace MemoMinder.SettingsApp
             ApplyCaptionForeground();
             ApplyCaptionFontType(captionFontFamilySettings);
 
-
-
             FileOrganization fileOrg = new FileOrganization();
-            FileOrganization.IsSaveName = true;
-            fileOrg.SerializateSettings(dataMemo, LastOpenedNote);
-            mainWindow.dataMemo = dataMemo;
-
+            fileOrg.SerializateSettings(dataMemo, LastOpenedNote, false, true);
             this.Close();
             mainWindow.Show();
-            
+            mainWindow.InitializeWindow(dataMemo);
+
+        }
+        private void SaveDataToDefaultFile()
+        {
+            string fileName = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),"MemoMinder", "DefaultThemeNote.json");
+
+            JsonSerializerOptions options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                ReferenceHandler = ReferenceHandler.Preserve
+            };
+
+            options.Converters.Add(new BrushConverter());
+            options.Converters.Add(new FontFamilyConverter());
+
+            dataMemo.MemoText = "Text";
+            dataMemo.CaptionText = "Caption";
+
+            string textToFile = JsonSerializer.Serialize(dataMemo, options);
+
+            using (StreamWriter writer = new StreamWriter(fileName))
+            {
+                writer.Write(textToFile);
+                writer.Close();
+            }
         }
         private void ApplyBackgroundWindow()
         {
-
             try
             {
                 if (Convert.ToString(backgroundWindowSettings.Text) != Convert.ToString(dataMemo.BackgroundWindow) ||
@@ -85,18 +129,16 @@ namespace MemoMinder.SettingsApp
                     {
                         ImageBrush imageBrush = new ImageBrush();
                         imageBrush.ImageSource = new BitmapImage(new Uri(backgroundWindowSettings.Text));
-                        //SetWindowBackground(imageBrush);
-                        mainWindow.Background = imageBrush;
+
                         dataMemo.BackgroundWindowColorPath = backgroundWindowSettings.Text;
-
-
+                        dataMemo.BackgroundWindow = null;
                     }
                     else
                     {
                         Color color = (Color)ColorConverter.ConvertFromString(backgroundWindowSettings.Text);
                         SolidColorBrush brush = new SolidColorBrush(color);
-                        //SetWindowBackground(brush);
-                        mainWindow.Background = brush;
+
+                        dataMemo.BackgroundWindowColorPath = null;
                         dataMemo.BackgroundWindow = brush;
                     }
                 }
@@ -107,7 +149,7 @@ namespace MemoMinder.SettingsApp
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Error backgroundWindow: " + ex);
+                MessageBox.Show($"Error save background Window.\n Exception:{ex}");
                 return;
             }
         }
@@ -115,29 +157,20 @@ namespace MemoMinder.SettingsApp
         {
             try
             {
-                bool isChecked = isCaptionActiveSettings.IsChecked ?? false; //captionBackground
-
                 if (backgroundTextBoxSettings.Text.ToLower() == "transparent")
                 {
                     dataMemo.BackgroundTextBoxPath = null;
                     dataMemo.BackgroundTextBox = new SolidColorBrush((Color)ColorConverter.ConvertFromString("Transparent"));
-                    mainWindow.textbox.Background = dataMemo.BackgroundTextBox;
                 }
                 else
                 {
 
                     if (File.Exists(backgroundTextBoxSettings.Text))
                     {
-                        dataMemo.BackgroundWindow = null;
                         BitmapImage bitmap = new BitmapImage(new Uri(backgroundTextBoxSettings.Text));
                         ImageBrush imageBrush = new ImageBrush(bitmap);
-                        mainWindow.textbox.Background = imageBrush;
+                        dataMemo.BackgroundTextBox = null;
                         dataMemo.BackgroundTextBoxPath = backgroundTextBoxSettings.Text;
-
-                        if (isChecked)
-                        {
-                            mainWindow.GridwindowPanel.Background = imageBrush;
-                        }
                     }
 
                     else
@@ -145,11 +178,6 @@ namespace MemoMinder.SettingsApp
                         dataMemo.BackgroundTextBoxPath = null;
                         Color color = (Color)ColorConverter.ConvertFromString(backgroundTextBoxSettings.Text);
                         dataMemo.BackgroundTextBox = new SolidColorBrush(color);
-                        mainWindow.textbox.Background = dataMemo.BackgroundTextBox;
-                        if (isChecked)
-                        {
-                            mainWindow.GridwindowPanel.Background = dataMemo.BackgroundTextBox;
-                        }
                     }
                 }
             }
@@ -166,7 +194,6 @@ namespace MemoMinder.SettingsApp
                 if (new SolidColorBrush((Color)ColorConverter.ConvertFromString(textBoxForegroundSettings.Text)) != dataMemo.TextBoxForeground)
                 {
                     dataMemo.TextBoxForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(textBoxForegroundSettings.Text));
-                    mainWindow.textbox.Foreground = dataMemo.TextBoxForeground;
                 }
             }
             catch (Exception ex)
@@ -182,7 +209,6 @@ namespace MemoMinder.SettingsApp
                 if (new SolidColorBrush((Color)ColorConverter.ConvertFromString(captionForegroundSettings.Text)) != dataMemo.CaptionForeground)
                 {
                     dataMemo.CaptionForeground = new SolidColorBrush((Color)ColorConverter.ConvertFromString(captionForegroundSettings.Text));
-                    mainWindow.captionMemo.Foreground = dataMemo.CaptionForeground;
                 }
             }
             catch (Exception ex)
@@ -195,11 +221,7 @@ namespace MemoMinder.SettingsApp
         {
             try
             {
-                if (Convert.ToDouble(fontSize.Text) != dataMemo.TextBoxFontSize)
-                {
-                    mainWindow.textbox.FontSize = Convert.ToDouble(fontSize.Text);
-                    dataMemo.TextBoxFontSize = Convert.ToDouble(fontSize.Text);
-                }
+                dataMemo.TextBoxFontSize = Convert.ToDouble(fontSize.Text);
             }
             catch (Exception ex)
             {
@@ -210,42 +232,18 @@ namespace MemoMinder.SettingsApp
         {
             try
             {
-                if (Convert.ToDouble(captionFontSizeSettings.Text) != dataMemo.CaptionFontSize)
-                {
-                    mainWindow.captionMemo.FontSize = Convert.ToDouble(captionFontSizeSettings.Text);
-                    dataMemo.CaptionFontSize = Convert.ToDouble(captionFontSizeSettings.Text);
-                }
+                dataMemo.CaptionFontSize = Convert.ToDouble(captionFontSizeSettings.Text);
             }
             catch (Exception ex)
             {
                 MessageBox.Show("FontsizeMemo" + ex);
             }
         }
-        private void ApplyUnderlineMemo()
-        {
-            bool isChecked = isUnderlineActiveSettings.IsChecked ?? false;
-            if (isChecked != dataMemo.IsUnderlineCaption)
-            {
-                if (isChecked)
-                {
-                    mainWindow.captionMemo.TextDecorations = TextDecorations.Underline;
-                }
-                else
-                {
-                    mainWindow.captionMemo.TextDecorations = null;
-                }
-                dataMemo.IsUnderlineCaption = isChecked;
-            }
-        }
         private void ApplyTextBoxMargin()
         {
             try
             {
-                if (Convert.ToDouble(textBoxMarginSettings.Text) != dataMemo.TextBoxMargin)
-                {
-                    dataMemo.TextBoxMargin = Convert.ToDouble(textBoxMarginSettings.Text);
-                    mainWindow.textbox.Margin = new System.Windows.Thickness(dataMemo.TextBoxMargin);
-                }
+                dataMemo.TextBoxMargin = Convert.ToDouble(textBoxMarginSettings.Text);
             }
             catch (Exception ex)
             {
@@ -253,89 +251,16 @@ namespace MemoMinder.SettingsApp
                 return;
             }
         }
-        private void ApplyVerticalScrollBarVisibility()
-        {
-            try
-            {
-                if (verticalScrollBarVisibilitySettings.IsChecked.Value != dataMemo.VerticalScrollBarVisibility)
-                {
-                    dataMemo.VerticalScrollBarVisibility = verticalScrollBarVisibilitySettings.IsChecked.Value;
-                    mainWindow.textbox.VerticalScrollBarVisibility = dataMemo.VerticalScrollBarVisibility ? ScrollBarVisibility.Visible : ScrollBarVisibility.Disabled;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Error ScrollBar" + ex);
-                return;
-            }
-        }
-        private void ApplyFontType(ComboBox comboBox)
-        {
-            string? selectedValue = comboBox.SelectedValue as string;
-            if (selectedValue != null)
-            {
-                dataMemo.TextBoxfontFamily = mainWindow.textbox.FontFamily;
-                mainWindow.textbox.FontFamily = new FontFamily(selectedValue);
-            }
-            else
-            {
-                MessageBox.Show("FontType Error: " + selectedValue);
-            }
-        }
-        private void ApplyCaptionFontType(ComboBox comboBox)
-        {
-            string? selectedValue = comboBox.SelectedValue as string;
-            if (selectedValue != null)
-            {
-                dataMemo.CaptionFontFamily = mainWindow.captionMemo.FontFamily;
-                mainWindow.captionMemo.FontFamily = new FontFamily(selectedValue);
-            }
-            else
-            {
-                MessageBox.Show("FontType Error: " + selectedValue);
-            }
-        }
-        private void ApplyIsToggleWindow()
-        {
-            bool isChecked = isVisibleAboveAppsSettings.IsChecked ?? false;
-
-            if (isChecked)
-            {
-                mainWindow.ResizeMode = ResizeMode.NoResize;
-                mainWindow.Topmost = true;
-            }
-            else
-            {
-                mainWindow.ResizeMode = ResizeMode.CanResize;
-                mainWindow.Topmost = false;
-            }
-            dataMemo.IsToggleWindow = isChecked;
-
-            //try
-        }
+        private void ApplyUnderlineMemo() => dataMemo.IsUnderlineCaption = isUnderlineActiveSettings.IsChecked ?? false;
+        private void ApplyVerticalScrollBarVisibility() => dataMemo.VerticalScrollBarVisibility = verticalScrollBarVisibilitySettings.IsChecked.Value;
+        private void ApplyFontType(ComboBox comboBox) => dataMemo.TextBoxfontFamily = new FontFamily(comboBox.SelectedValue as string);
+        private void ApplyCaptionFontType(ComboBox comboBox) => dataMemo.CaptionFontFamily = new FontFamily(comboBox.SelectedValue as string);
+        private void ApplyIsToggleWindow() => dataMemo.IsToggleWindow = isVisibleAboveAppsSettings.IsChecked ?? false;
+        private void ApplyIsCaptionActive() => dataMemo.IsCaptionActive = isCaptionActiveSettings.IsChecked ?? false;
         private void ApplySizeWindow()
         {
-
             dataMemo.HeightWindow = Convert.ToDouble(heightWindowSettings.Text);
             dataMemo.WidthWindow = Convert.ToDouble(widthWindowSettings.Text);
-
-            mainWindow.Height = dataMemo.HeightWindow;
-            mainWindow.Width = dataMemo.WidthWindow;
-        }
-        private void ApplyIsCaptionActive()
-        {
-            bool isChecked = isCaptionActiveSettings.IsChecked ?? false;
-
-            if (isChecked)
-            {
-                mainWindow.caption.Height = new GridLength(25);
-            }
-            else
-            {
-                mainWindow.caption.Height = new GridLength(0);
-            }
-            dataMemo.IsCaptionActive = isChecked;
-
         }
         private void backgroundTextBoxSettings_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -352,7 +277,7 @@ namespace MemoMinder.SettingsApp
                     ChangebackgroundTextBoxSettings.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(backgroundTextBoxSettings.Text));
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return;
             }
@@ -361,6 +286,10 @@ namespace MemoMinder.SettingsApp
         {
             try
             {
+                if (backgroundTextBoxSettings.Text.ToLower() == "transparent")
+                {
+                    MessageBox.Show($"{backgroundTextBoxSettings.Text} - do not apply");
+                }
                 if (File.Exists(backgroundWindowSettings.Text))
                 {
                     BitmapImage bitmap = new BitmapImage(new Uri(backgroundWindowSettings.Text));
@@ -372,18 +301,14 @@ namespace MemoMinder.SettingsApp
                     ChangebackgroundWindowSettings.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(backgroundWindowSettings.Text));
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return;
             }
         }
-        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e) 
         {
-            if (Mouse.LeftButton == MouseButtonState.Pressed)
-            {
-                this.DragMove();
-            }
-
+            if (Mouse.LeftButton == MouseButtonState.Pressed) this.DragMove();
         }
         private void Initialize()
         {
@@ -393,23 +318,14 @@ namespace MemoMinder.SettingsApp
         }
         private void LoadTextBox()
         {
-            //if (string.IsNullOrEmpty(dataMemo.BackgroundWindowColorPath))
-            //{
-            //    settingsWindow.backgroundWindowSettings.Text = Convert.ToString(dataMemo.BackgroundWindow);
-            //}
-
-            backgroundWindowSettings.Text =  string.IsNullOrEmpty(dataMemo.BackgroundWindowColorPath) ? Convert.ToString(dataMemo.BackgroundWindow) : Convert.ToString(dataMemo.BackgroundWindowColorPath);
-
-
-            backgroundTextBoxSettings.Text =  dataMemo.BackgroundTextBoxPath ?? Convert.ToString(dataMemo.BackgroundTextBox);
+            backgroundWindowSettings.Text = string.IsNullOrEmpty(dataMemo.BackgroundWindowColorPath) ? Convert.ToString(dataMemo.BackgroundWindow) : dataMemo.BackgroundWindowColorPath;
+            backgroundTextBoxSettings.Text = string.IsNullOrEmpty(dataMemo.BackgroundTextBoxPath) ? Convert.ToString(dataMemo.BackgroundTextBox) : dataMemo.BackgroundTextBoxPath;
             textBoxForegroundSettings.Text = Convert.ToString(dataMemo.TextBoxForeground);
             captionForegroundSettings.Text = Convert.ToString(dataMemo.CaptionForeground);
             captionFontSizeSettings.Text = Convert.ToString(dataMemo.CaptionFontSize);
             textBoxMarginSettings.Text = Convert.ToString(dataMemo.TextBoxMargin);
-
             heightWindowSettings.Text = Convert.ToString(dataMemo.HeightWindow);
             widthWindowSettings.Text = Convert.ToString(dataMemo.WidthWindow);
-
             fontSize.Text = Convert.ToString(dataMemo.TextBoxFontSize);
         }
         private void LoadCheckBox()
@@ -424,29 +340,7 @@ namespace MemoMinder.SettingsApp
             InitFontTypeComboBox(fontTypeComboBox, dataMemo.TextBoxfontFamily);
             InitFontTypeComboBox(captionFontFamilySettings, dataMemo.CaptionFontFamily);
         }
-        private void LoadDictionary(Dictionary<int, FontFamily> dictionary)
-        {
-            dictionary.Add(1, new FontFamily("Arial"));
-            dictionary.Add(2, new FontFamily("Times New Roman"));
-            dictionary.Add(3, new FontFamily("Verdana"));
-            dictionary.Add(4, new FontFamily("Calibri"));
-            dictionary.Add(5, new FontFamily("Cambria"));
-            dictionary.Add(6, new FontFamily("Georgia"));
-            dictionary.Add(7, new FontFamily("Helvetica"));
-            dictionary.Add(8, new FontFamily("Lucida Sans Unicode"));
-            dictionary.Add(9, new FontFamily("Palatino Linotype"));
-            dictionary.Add(10, new FontFamily("Segoe UI"));
-            dictionary.Add(11, new FontFamily("Tahoma"));
-            dictionary.Add(12, new FontFamily("Trebuchet MS"));
-            dictionary.Add(13, new FontFamily("Century Gothic"));
-            dictionary.Add(14, new FontFamily("Garamond"));
-            dictionary.Add(15, new FontFamily("Book Antiqua"));
-            dictionary.Add(16, new FontFamily("Franklin Gothic Medium"));
-            dictionary.Add(17, new FontFamily("Rockwell"));
-            dictionary.Add(18, new FontFamily("Baskerville Old Face"));
-            dictionary.Add(19, new FontFamily("Consolas"));
-            dictionary.Add(20, new FontFamily("Courier New"));
-        }
+
         private void InitFontTypeComboBox(ComboBox comboBox, FontFamily index)
         {
             string[] fontName = new string[fontDictionary.Count];
@@ -470,7 +364,31 @@ namespace MemoMinder.SettingsApp
             comboBox.ItemsSource = fontName;
             comboBox.SelectedIndex = position - 1;
         }
+        private void backgroundWindowSettings_MouseDoubleClick(object sender, MouseButtonEventArgs e) => backgroundWindowSettings.Text = GetFile(backgroundWindowSettings);
+        private void backgroundTextBoxSettings_MouseDoubleClick(object sender, MouseButtonEventArgs e) =>  backgroundTextBoxSettings.Text = GetFile(backgroundTextBoxSettings);
+        private string GetFile(TextBox textBox)
+        {
+            string pathProject = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MemoMinder", "Backgrounds");
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Title = "Open image file.";
+            openFileDialog.InitialDirectory = pathProject;
+            openFileDialog.Filter = "Image Files (*.jpg; *.png; *.bmp)|*.jpg;*.png;*.bmp";
 
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string fileName = System.IO.Path.GetFileName(openFileDialog.FileName);
+                string targetPath = System.IO.Path.Combine(pathProject, fileName);
+
+                if (!File.Exists(targetPath))
+                {
+                    File.Copy(openFileDialog.FileName, targetPath);
+                }
+
+                textBox.Text = targetPath;
+            }
+
+            return textBox.Text;
+        }
     }
 }
 
