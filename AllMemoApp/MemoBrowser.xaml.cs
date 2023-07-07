@@ -188,9 +188,11 @@ namespace MemoMinder.AllMemoApp
                     fileorg.SetLastOpenedNote(MemoFiles[number]);
                 }
             }
+            DataMemo dataMemo = new DataMemo();
+            dataMemo = fileorg.DeserializeSettings(MemoFiles[number]);
+            MainWindow.dataMemo = dataMemo;
             this.Close();
-            MainWindow main = new MainWindow();
-            main.Show();
+
         }
 
         private Label FindLabelInBorder(Border border)

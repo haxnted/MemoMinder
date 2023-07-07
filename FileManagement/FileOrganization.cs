@@ -19,6 +19,7 @@ namespace MemoMinder
         private List<string> MemoFiles { get; set; }
 
         private readonly string NameFile = "\\LastOpenedNote.json";
+        
         public FileOrganization() 
         {
             MemoFiles = new List<string>();
@@ -28,7 +29,7 @@ namespace MemoMinder
             MemoFiles = GetFilesInPath();
         }
     
-        public List<string>? GetFilesInPath()
+        public List<string> GetFilesInPath()
         {
             string folderNotes = Path.Combine(PathAppData + "\\Notes");
 
@@ -182,9 +183,7 @@ namespace MemoMinder
             DataMemo memo = JsonSerializer.Deserialize<DataMemo>(fileFromText, options);
 
             SerializateSettings(memo, "Note", true, true);
-
-            MainWindow mainWindow = new MainWindow(memo);
-            mainWindow.Show();
+            MainWindow.dataMemo = memo;
            
         }
         private string GetPath()

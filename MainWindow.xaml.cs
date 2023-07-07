@@ -39,15 +39,14 @@ namespace MemoMinder
         }
         private void ShowAllMemo(object sender, RoutedEventArgs e)
         {
-            Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
-
             if (MemoBrowserManager.Instance.CanOpenAllMemoWindow())
             {
                 MemoBrowser memoBrowser = new MemoBrowser();
                 memoBrowser.Closed += (s,args) => MemoBrowserManager.Instance.DecrementWindowCount();
                 MemoBrowserManager.Instance.IncrementWindowCount();
-                memoBrowser.Show();
-                this.Close();
+                memoBrowser.ShowDialog();
+                LastOpenedName = fileOrg.GetLastOpenedNote();
+                InitializeWindow(dataMemo);
             }
             else
             {
@@ -56,8 +55,9 @@ namespace MemoMinder
         }
         private void CreateWindow(object sender, RoutedEventArgs e)
         {
-            fileOrg.CreateDefaultNote(); 
-            this.Close();
+            fileOrg.CreateDefaultNote();
+            LastOpenedName = fileOrg.GetLastOpenedNote();
+            InitializeWindow(dataMemo);
         }
         private void ToggleMemo(object sender, RoutedEventArgs e)
         {
@@ -157,7 +157,7 @@ namespace MemoMinder
                 this.DragMove();
             }
         }
-        public void InitializeWindow(DataMemo dataMemo)
+        public  void InitializeWindow(DataMemo dataMemo)
         {
 
             if (!string.IsNullOrEmpty(dataMemo.BackgroundWindowColorPath))

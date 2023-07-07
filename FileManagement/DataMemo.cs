@@ -71,7 +71,6 @@ namespace MemoMinder
         public override bool CanConvert(Type typeToConvert) => typeof(Brush).IsAssignableFrom(typeToConvert);
     }
 
-
     public class FontFamilyConverter : JsonConverter<FontFamily>
     {
         public override FontFamily Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
