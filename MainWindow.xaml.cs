@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using MemoMinder.AllMemoApp;
+using System.Windows.Shell;
 using MemoMinder.SettingsApp;
 
 namespace MemoMinder
@@ -23,19 +24,61 @@ namespace MemoMinder
         private double SavedHeight { get; set; }
         private double SavedWidth { get; set; }
         private string LastOpenedName { get; set; }
-
-        public MainWindow() //constructor for the default window
+        private bool isDragging { get; set; }
+        private Point dragOffset { get; set; }
+        public MainWindow() 
         {
             InitializeComponent();
+            var windowChrome = CreateWindowChrome();
+
+            WindowChrome.SetWindowChrome(this, windowChrome);
+
             LastOpenedName = fileOrg.GetLastOpenedNote();
             dataMemo = fileOrg.DeserializeSettings(LastOpenedName);
             InitializeWindow(dataMemo);
+
+            MouseLeftButtonDown += MainWindow_MouseLeftButtonDown;
+            MouseLeftButtonUp += MainWindow_MouseLeftButtonUp;
+            MouseMove += MainWindow_MouseMove;
         }
-        public MainWindow(DataMemo memo) //constructor for open window in folder Memo
+        private void MainWindow_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            InitializeComponent();
-            LastOpenedName = fileOrg.GetLastOpenedNote();
-            InitializeWindow(memo);
+            if (e.ButtonState == MouseButtonState.Pressed)
+            {
+                isDragging = true;
+                dragOffset = e.GetPosition(this);
+                CaptureMouse();
+            }
+        }
+        private void MainWindow_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            if (isDragging)
+            {
+                isDragging = false;
+                ReleaseMouseCapture();
+            }
+        }
+        private void MainWindow_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isDragging)
+            {
+                Point currentPosition = e.GetPosition(this);
+                double offsetX = currentPosition.X - dragOffset.X;
+                double offsetY = currentPosition.Y - dragOffset.Y;
+
+                Left += offsetX;
+                Top += offsetY;
+            }
+        }
+        private WindowChrome CreateWindowChrome()
+        {
+            var windowChrome = new WindowChrome
+            {
+                ResizeBorderThickness = new Thickness(8),
+                CaptionHeight = 0,
+                CornerRadius = new CornerRadius(0),
+            };
+            return windowChrome;
         }
         private void ShowAllMemo(object sender, RoutedEventArgs e)
         {
@@ -76,7 +119,8 @@ namespace MemoMinder
         {
             if (SettingsWindowManager.Instance.CanOpenSettingsWindow())
             {
-                dataMemo = fileOrg.DeserializeSettings(LastOpenedName);
+                
+                //dataMemo = fileOrg.DeserializeSettings(LastOpenedName);
                 SettingsWindow window = new SettingsWindow(this, dataMemo, LastOpenedName);
                 window.Closed += (s, args) => SettingsWindowManager.Instance.DecrementWindowCount();
                 SettingsWindowManager.Instance.IncrementWindowCount();
@@ -133,7 +177,7 @@ namespace MemoMinder
         {
             if (IsWindowPanelShow)
             {
-                if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.S)
+                if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.H)
                 {
                     GridwindowPanel.Visibility = Visibility.Visible;
                     windowPanelDefinition.Height = new GridLength(17);
@@ -142,20 +186,14 @@ namespace MemoMinder
             }
             else if (!IsWindowPanelShow)
             {
-                if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.S)
+                if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.H)
                 {
                     GridwindowPanel.Visibility = Visibility.Hidden;
                     windowPanelDefinition.Height = new GridLength(0);
                     IsWindowPanelShow = true;
                 }
             }
-        }
-        private void WindowMoveDown(object sender, MouseButtonEventArgs e)
-        {
-            if (Mouse.LeftButton == MouseButtonState.Pressed)
-            {
-                this.DragMove();
-            }
+
         }
         public  void InitializeWindow(DataMemo dataMemo)
         {
@@ -233,13 +271,17 @@ namespace MemoMinder
                     }
                 }
             }
-
             textbox.Text = Text;
-
+            dataMemo.MemoText = textbox.Text;
             if (previousCursorPosition <= Text.Length) textbox.SelectionStart = previousCursorPosition;
             else textbox.SelectionStart = Text.Length;
         }
-
-
+        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            //Height = e.NewSize.Width;
+            //Width = e.NewSize.Width;
+            dataMemo.WidthWindow = e.NewSize.Width;
+            dataMemo.HeightWindow = e.NewSize.Height;
+        }
     }
 }

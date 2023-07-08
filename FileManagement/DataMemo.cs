@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json.Serialization;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows.Media;
-using System.Xml.Serialization;
 
 namespace MemoMinder
 {
@@ -21,7 +16,6 @@ namespace MemoMinder
         public FontFamily? CaptionFontFamily { get; set; }
         public string BackgroundWindowColorPath { get; set; }
         public string BackgroundTextBoxPath { get; set; }
-
         public string CaptionText { get; set; }
         public string MemoText { get; set; }
         public double TextBoxMargin { get; set; }

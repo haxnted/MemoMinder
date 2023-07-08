@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:MemoMinder"
         mc:Ignorable="d"
         Title="Memo" Height="150" Width="100" MinWidth="140" MinHeight="100" 
-        WindowStyle="None" AllowsTransparency="True" KeyDown="WindowKeyDown" MouseDown="WindowMoveDown">
+        WindowStyle="None" SizeChanged="Window_SizeChanged"  AllowsTransparency="True" KeyDown="WindowKeyDown">
 
     <Grid>
         
@@ -20,7 +20,7 @@
         <Grid Grid.Column="0" x:Name="GridwindowPanel" >
             <!--MouseDown="Window_MouseDown"-->
             <!--window menu -->
-            
+            <Label x:Name="HeaderZindex"  Panel.ZIndex="0"></Label>
             <StackPanel  Grid.Column="0" Orientation="Horizontal" >
                 <Button x:Name="allMemoButton" Click="ShowAllMemo" Height="15" Width="15" BorderThickness="0" Margin="0,0,1,0">
                     <Button.Background>
@@ -74,6 +74,7 @@
         </Grid>
 
         <!--caption-->
+        <Image x:Name="ZindexCaption" Panel.ZIndex="0" Grid.Row="1" Grid.Column="0"/>
         <TextBox x:Name="captionMemo" Grid.Row="1" Grid.Column="0" BorderThickness="0" Background="Transparent" VerticalAlignment="Center" Margin="5,0,0,0"  FontWeight="Bold">Заголовок</TextBox>
         <!--TextDecorations-->
 
@@ -82,14 +83,11 @@
             <Grid.RowDefinitions>
                 <RowDefinition/>
             </Grid.RowDefinitions>
-
+            <Image x:Name="ZindexTextBox"  Panel.ZIndex="0"/>
             <TextBox  x:Name="textbox"  Grid.Row="1" Margin="5" BorderThickness="0"
                       VerticalScrollBarVisibility="Disabled"  AcceptsReturn="True" TextWrapping="Wrap"
-                      Foreground="#FFDA1C1C" TextChanged="textbox_TextChanged"/>
+                      Foreground="#FFDA1C1C" TextChanged="textbox_TextChanged" />
 
-            <!--<Label Grid.Row="1"  Panel.ZIndex="1" IsHitTestVisible="True"/>-->
         </Grid>
-
-
     </Grid>
 </Window>

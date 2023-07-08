@@ -38,9 +38,8 @@
             </Setter>
         </Style>
     </Window.Resources>
-
-    <Grid x:Name="GridAllMemo">
-
+    <Grid x:Name="GridAllMemo" ScrollViewer.VerticalScrollBarVisibility="Hidden">
+                    
 
     </Grid>
     

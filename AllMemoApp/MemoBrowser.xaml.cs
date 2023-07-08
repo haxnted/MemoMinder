@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -36,7 +32,6 @@ namespace MemoMinder.AllMemoApp
             TotalColumns = columns;
             CreateGrid(columns, rows);
         }
-
         private void CreateGrid(int columnDefinitions, int rowDefinitions)
         {
             Grid gridAllMemo = GridAllMemo;
@@ -160,7 +155,7 @@ namespace MemoMinder.AllMemoApp
                 }
             }
         }
-       
+
         private void OpenMemo(object sender, RoutedEventArgs e)
         {
             Button button = (Button)sender;
@@ -169,49 +164,13 @@ namespace MemoMinder.AllMemoApp
 
             int number = row * TotalColumns + column;
 
-            Border border = null;
+            fileorg.SetLastOpenedNote(MemoFiles[number]);
 
-            foreach (var child in GridAllMemo.Children)
-            {
-                if (child is Border childBorder && Grid.GetRow(childBorder) == row && Grid.GetColumn(childBorder) == column)
-                {
-                    border = childBorder;
-                    break;
-                }
-            }
-
-            if (border != null)
-            {
-                Label label = FindLabelInBorder(border);
-                if (label != null)
-                {
-                    fileorg.SetLastOpenedNote(MemoFiles[number]);
-                }
-            }
             DataMemo dataMemo = new DataMemo();
             dataMemo = fileorg.DeserializeSettings(MemoFiles[number]);
             MainWindow.dataMemo = dataMemo;
             this.Close();
 
         }
-
-        private Label FindLabelInBorder(Border border)
-        {
-            Grid grid = border.Child as Grid;
-            if (grid != null)
-            {
-                for (int i = 0; i < grid.Children.Count; i++)
-                {
-                    if (grid.Children[i] is Label label)
-                    {
-                        return label;
-                    }
-                }
-            }
-
-            return null;
-        }
-
-
     }
 }
