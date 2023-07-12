@@ -48,6 +48,8 @@ namespace MemoMinder.SettingsApp
         private string LastOpenedNote;
         public SettingsWindow(MainWindow mainWindow, DataMemo dataMemo, string LastOpenedNote)
         {
+            WindowStartupLocation = WindowStartupLocation.CenterScreen;
+
             this.mainWindow = mainWindow;
             this.dataMemo = dataMemo;
             this.LastOpenedNote = LastOpenedNote;

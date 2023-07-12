@@ -32,7 +32,7 @@ namespace MemoMinder
     [Serializable]
     class DataWindow
     {
-        public string LastOpenedFile { get; set; }
+        public string? LastOpenedFile { get; set; }
     }
     public class BrushConverter : JsonConverter<Brush>
     {
@@ -82,7 +82,6 @@ namespace MemoMinder
         {
             writer.WriteStringValue(value.Source);
         }
-
         public override bool CanConvert(Type typeToConvert) => typeof(FontFamily).IsAssignableFrom(typeToConvert);
     }
 

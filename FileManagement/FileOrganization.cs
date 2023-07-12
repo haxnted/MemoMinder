@@ -37,12 +37,7 @@ namespace MemoMinder
 
             string[] tempfiles = Directory.GetFiles(folderNotes);
             
-            int tempFilesLength = tempfiles.Length;
-            
-            if (tempFilesLength == 0 )
-            {
-                CreateDefaultNote();
-            }
+            int tempFilesLength = tempfiles.Length;     
 
             if (PathAppData != null)
             {
@@ -51,7 +46,7 @@ namespace MemoMinder
 
                 foreach (var file in fileList)
                 {
-                    files.Add(System.IO.Path.GetFileNameWithoutExtension(file.FullName));
+                    files.Add(Path.GetFileNameWithoutExtension(file.FullName));
                 }
             }
             return files;
@@ -81,9 +76,11 @@ namespace MemoMinder
             }
 
             DataWindow? dataWindow = JsonSerializer.Deserialize<DataWindow>(textFromFile);
-            
-            return dataWindow.LastOpenedFile;
 
+            if (dataWindow != null) return dataWindow.LastOpenedFile;
+       
+            else return string.Empty; 
+            
         }
 
         private void CheckExistingPaths(string path)
@@ -274,28 +271,27 @@ namespace MemoMinder
         {
             string fileName = PathAppData + $"\\Notes\\{file}" + ".json";
 
-            try
-            {
-                string jsonString = "";
-                using (StreamReader filestream = new StreamReader(fileName))
-                {
-                    jsonString = filestream.ReadToEnd();
-                    filestream.Close();
-                }
 
-                JsonSerializerOptions options = new JsonSerializerOptions();
-                options.Converters.Add(new BrushConverter());
-                options.Converters.Add(new FontFamilyConverter());
-
-                DataMemo data = JsonSerializer.Deserialize<DataMemo>(jsonString, options);
-                
-                return data;
-            }
-            catch (Exception ex)
+            string jsonString = "";
+            using (StreamReader filestream = new StreamReader(fileName))
             {
-                MessageBox.Show($"Failed to deserialize {file}: {ex.Message}");
-                return null;
+                jsonString = filestream.ReadToEnd();
+                filestream.Close();
             }
+
+            JsonSerializerOptions options = new JsonSerializerOptions();
+            options.Converters.Add(new BrushConverter());
+            options.Converters.Add(new FontFamilyConverter());
+
+            DataMemo data = JsonSerializer.Deserialize<DataMemo>(jsonString, options);
+
+            if (data == null)
+            {
+                throw new Exception("Error");
+            }
+            return data;
+
+
         }
     }
 }

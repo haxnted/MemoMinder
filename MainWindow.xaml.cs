@@ -24,8 +24,8 @@ namespace MemoMinder
         private double SavedHeight { get; set; }
         private double SavedWidth { get; set; }
         private string LastOpenedName { get; set; }
-        private bool isDragging { get; set; }
-        private Point dragOffset { get; set; }
+        private bool IsDragging { get; set; }
+        private Point DragOffset { get; set; }
         public MainWindow() 
         {
             InitializeComponent();
@@ -45,26 +45,26 @@ namespace MemoMinder
         {
             if (e.ButtonState == MouseButtonState.Pressed)
             {
-                isDragging = true;
-                dragOffset = e.GetPosition(this);
+                IsDragging = true;
+                DragOffset = e.GetPosition(this);
                 CaptureMouse();
             }
         }
         private void MainWindow_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (isDragging)
+            if (IsDragging)
             {
-                isDragging = false;
+                IsDragging = false;
                 ReleaseMouseCapture();
             }
         }
         private void MainWindow_MouseMove(object sender, MouseEventArgs e)
         {
-            if (isDragging)
+            if (IsDragging)
             {
                 Point currentPosition = e.GetPosition(this);
-                double offsetX = currentPosition.X - dragOffset.X;
-                double offsetY = currentPosition.Y - dragOffset.Y;
+                double offsetX = currentPosition.X - DragOffset.X;
+                double offsetY = currentPosition.Y - DragOffset.Y;
 
                 Left += offsetX;
                 Top += offsetY;
@@ -82,6 +82,7 @@ namespace MemoMinder
         }
         private void ShowAllMemo(object sender, RoutedEventArgs e)
         {
+            fileOrg.SerializateSettings(dataMemo, LastOpenedName, false, false);
             if (MemoBrowserManager.Instance.CanOpenAllMemoWindow())
             {
                 MemoBrowser memoBrowser = new MemoBrowser();
@@ -98,6 +99,7 @@ namespace MemoMinder
         }
         private void CreateWindow(object sender, RoutedEventArgs e)
         {
+            fileOrg.SerializateSettings(dataMemo, LastOpenedName, false, false);
             fileOrg.CreateDefaultNote();
             LastOpenedName = fileOrg.GetLastOpenedNote();
             InitializeWindow(dataMemo);
@@ -119,8 +121,9 @@ namespace MemoMinder
         {
             if (SettingsWindowManager.Instance.CanOpenSettingsWindow())
             {
-                
-                //dataMemo = fileOrg.DeserializeSettings(LastOpenedName);
+
+                dataMemo.MemoText = textbox.Text;
+                dataMemo.CaptionText = captionMemo.Text;
                 SettingsWindow window = new SettingsWindow(this, dataMemo, LastOpenedName);
                 window.Closed += (s, args) => SettingsWindowManager.Instance.DecrementWindowCount();
                 SettingsWindowManager.Instance.IncrementWindowCount();
@@ -278,8 +281,6 @@ namespace MemoMinder
         }
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            //Height = e.NewSize.Width;
-            //Width = e.NewSize.Width;
             dataMemo.WidthWindow = e.NewSize.Width;
             dataMemo.HeightWindow = e.NewSize.Height;
         }
