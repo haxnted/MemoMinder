@@ -7,12 +7,12 @@ using System.Windows.Media.Imaging;
 using MemoMinder.AllMemoApp;
 using System.Windows.Shell;
 using MemoMinder.SettingsApp;
+using System.Text.RegularExpressions;
+using System.Text;
+using System.Linq;
 
 namespace MemoMinder
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public static DataMemo dataMemo = new DataMemo();
@@ -26,7 +26,7 @@ namespace MemoMinder
         private string LastOpenedName { get; set; }
         private bool IsDragging { get; set; }
         private Point DragOffset { get; set; }
-        public MainWindow() 
+        public MainWindow()
         {
             InitializeComponent();
             var windowChrome = CreateWindowChrome();
@@ -68,6 +68,7 @@ namespace MemoMinder
 
                 Left += offsetX;
                 Top += offsetY;
+
             }
         }
         private WindowChrome CreateWindowChrome()
@@ -86,16 +87,15 @@ namespace MemoMinder
             if (MemoBrowserManager.Instance.CanOpenAllMemoWindow())
             {
                 MemoBrowser memoBrowser = new MemoBrowser();
-                memoBrowser.Closed += (s,args) => MemoBrowserManager.Instance.DecrementWindowCount();
+                memoBrowser.Closed += (s, args) => MemoBrowserManager.Instance.DecrementWindowCount();
                 MemoBrowserManager.Instance.IncrementWindowCount();
                 memoBrowser.ShowDialog();
                 LastOpenedName = fileOrg.GetLastOpenedNote();
                 InitializeWindow(dataMemo);
             }
             else
-            {
                 return;
-            }
+
         }
         private void CreateWindow(object sender, RoutedEventArgs e)
         {
@@ -131,9 +131,8 @@ namespace MemoMinder
                 window.Show();
             }
             else
-            {
                 return;
-            }
+
         }
         private void DeleteFile(object sender, RoutedEventArgs e)
         {
@@ -167,7 +166,7 @@ namespace MemoMinder
                 IsWindowMaximize = false;
             }
             else
-            {     
+            {
                 Left = SavedLeft;
                 Top = SavedTop;
                 Height = SavedHeight;
@@ -198,7 +197,7 @@ namespace MemoMinder
             }
 
         }
-        public  void InitializeWindow(DataMemo dataMemo)
+        public void InitializeWindow(DataMemo dataMemo)
         {
 
             if (!string.IsNullOrEmpty(dataMemo.BackgroundWindowColorPath))
@@ -208,7 +207,7 @@ namespace MemoMinder
                 Background = imageBrush;
             }
             else Background = dataMemo.BackgroundWindow;
-            
+
 
             if (!string.IsNullOrEmpty(dataMemo.BackgroundTextBoxPath))
             {
@@ -217,9 +216,9 @@ namespace MemoMinder
                 textbox.Background = imageBrush;
             }
             else textbox.Background = MainWindow.dataMemo.BackgroundTextBox;
-            
+
             if (dataMemo.IsCaptionActive) caption.Height = new GridLength(17);
-            else  caption.Height = new GridLength(0);
+            else caption.Height = new GridLength(0);
 
             if (dataMemo.IsToggleWindow)
             {
@@ -235,7 +234,7 @@ namespace MemoMinder
 
             else textbox.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
 
-            textbox.Text = dataMemo.MemoText;           
+            textbox.Text = dataMemo.MemoText;
             textbox.FontSize = dataMemo.TextBoxFontSize;
             textbox.Foreground = dataMemo.TextBoxForeground;
             textbox.Margin = new Thickness(dataMemo.TextBoxMargin);
@@ -251,33 +250,32 @@ namespace MemoMinder
         }
         private void textbox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            string Text = textbox.Text;
-            int CountCircles;
-            int previousCursorPosition = textbox.SelectionStart;
-
-            for (int i = 0; i < Text.Length - 1; i++)
+            int tempCursor = textbox.SelectionStart;
+            MatchCollection matches = Regex.Matches(textbox.Text, @"\.-(\d+) ");
+            if (matches.Count == 0)
             {
-                if (i + 2 <= Text.Length - 1)
-                {
-                    string tempText = "";
-                    if (Text[i] == '.' && Text[i + 1] == '-' && int.TryParse(Convert.ToString(Text[i + 2]), out CountCircles))
-                    {
-                        if (CountCircles <= 0) { return; }
-                        else
-                        {
-                            for (int j = 0; j < CountCircles; j++)
-                            {
-                                tempText = tempText + "● " + '\n';
-                            }
-                            Text = Text.Substring(0, i) + tempText + Text.Substring(i + 3);
-                        }
-                    }
-                }
+                return;
             }
-            textbox.Text = Text;
+            int CountCircles = Convert.ToInt32(matches[0].Groups[1].Value);
+
+            string temptext = Regex.Replace(textbox.Text, @"\.-(\d+) ", "");
+            textbox.Text = Regex.Replace(textbox.Text, @"\.-(\d+) ", string.Concat(Enumerable.Repeat("● \n", CountCircles)));
+
+            if (tempCursor <= textbox.Text.Length) textbox.SelectionStart = temptext.Length + 2;
+            else textbox.SelectionStart = textbox.Text.Length;
             dataMemo.MemoText = textbox.Text;
-            if (previousCursorPosition <= Text.Length) textbox.SelectionStart = previousCursorPosition;
-            else textbox.SelectionStart = Text.Length;
+
+            //if (int.TryParse(matches[0].Groups[1].Value, out int CountCircles))
+            //{
+
+            //    textbox.Text = Regex.Replace(textbox.Text, @"\.-(\d+) ", string.Concat(Enumerable.Repeat("● \n", CountCircles)));
+            //    MessageBox.Show($"{textbox.Text}\n{textbox.SelectionStart}\n Text-length: {textbox.Text.Length}\nCountCirclesLength: {CountCircles * 2}");
+            //    textbox.SelectionStart = textbox.Text.Length - CountCircles * 2 - 9;
+
+
+            //}
+            // if (previousCursorPosition <= textbox.Text.Length) textbox.SelectionStart = previousCursorPosition;
+            // else textbox.SelectionStart = textbox.Text.Length;
         }
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
@@ -285,4 +283,6 @@ namespace MemoMinder
             dataMemo.HeightWindow = e.NewSize.Height;
         }
     }
-}
+    
+} 
+

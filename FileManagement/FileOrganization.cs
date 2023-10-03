@@ -241,20 +241,18 @@ namespace MemoMinder
             if (IsCreatedNewWindow)
             {
                 int index = 0;
-                filename = System.IO.Path.Combine(PathAppData, $"Notes\\");
+                filename = Path.Combine(PathAppData, $"Notes\\");
 
                 while (File.Exists(filename + nameFile + Convert.ToString(index) + ".json"))
-                {
                     index++;
-                }
+                
                 filename += nameFile + Convert.ToString(index) + ".json";
 
                 MemoFiles.Add(nameFile + Convert.ToString(index));
                 
                 if (IsSaveName)
-                {
                     SetLastOpenedNote(nameFile + Convert.ToString(index));
-                }
+                
             }
             else
             {
@@ -285,13 +283,7 @@ namespace MemoMinder
 
             DataMemo data = JsonSerializer.Deserialize<DataMemo>(jsonString, options);
 
-            if (data == null)
-            {
-                throw new Exception("Error");
-            }
-            return data;
-
-
+            return data == null ? throw new Exception("Error") : data;
         }
     }
 }

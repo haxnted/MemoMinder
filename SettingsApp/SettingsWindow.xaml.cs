@@ -7,16 +7,11 @@ using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace MemoMinder.SettingsApp
 {
-    /// <summary>
-    /// Логика взаимодействия для SettingsWindow.xaml
-    /// </summary>
     
     public partial class SettingsWindow : Window
     {
@@ -71,9 +66,8 @@ namespace MemoMinder.SettingsApp
                 return;
             }
             if (isSaveTemplate.IsChecked == true)
-            {
                 SaveDataToDefaultFile();
-            }
+            
             ApplySizeWindow();
             ApplyFontType(fontTypeComboBox);
             ApplyBackgroundWindow();
@@ -109,10 +103,12 @@ namespace MemoMinder.SettingsApp
             options.Converters.Add(new BrushConverter());
             options.Converters.Add(new FontFamilyConverter());
 
-            dataMemo.MemoText = "Text";
-            dataMemo.CaptionText = "Caption";
+            //fix prblem where user save default memo, and text with caption removed
+            DataMemo savememo = (DataMemo)dataMemo.Clone();
+            savememo.MemoText = "Text";
+            savememo.CaptionText = "Caption";
 
-            string textToFile = JsonSerializer.Serialize(dataMemo, options);
+            string textToFile = JsonSerializer.Serialize(savememo, options);
 
             using (StreamWriter writer = new StreamWriter(fileName))
             {

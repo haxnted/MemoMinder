@@ -6,7 +6,7 @@ using System.Windows.Media;
 namespace MemoMinder
 {
     [Serializable]
-    public class DataMemo
+    public class DataMemo : ICloneable
     {
         public Brush BackgroundWindow { get; set; }
         public Brush BackgroundTextBox { get; set; }
@@ -28,6 +28,10 @@ namespace MemoMinder
         public double HeightWindow { get; set; }
         public double WidthWindow { get; set; }
         public DataMemo() { }
+
+        public object Clone() =>
+             MemberwiseClone();
+        
     }
     [Serializable]
     class DataWindow
