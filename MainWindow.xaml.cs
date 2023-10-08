@@ -8,7 +8,6 @@ using MemoMinder.AllMemoApp;
 using System.Windows.Shell;
 using MemoMinder.SettingsApp;
 using System.Text.RegularExpressions;
-using System.Text;
 using System.Linq;
 
 namespace MemoMinder
@@ -177,23 +176,33 @@ namespace MemoMinder
         }
         private void WindowKeyDown(object sender, KeyEventArgs e)
         {
-            if (IsWindowPanelShow)
+            byte minvalue = 5;
+            byte maxvalue = 20;
+            if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.LeftShift){
+                dataMemo.MemoText = textbox.Text;
+                dataMemo.CaptionText = captionMemo.Text;
+                fileOrg.SerializateSettings(dataMemo, LastOpenedName, false, true);
+                return;
+            }
+            else if (IsWindowPanelShow)
             {
                 if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.H)
                 {
                     GridwindowPanel.Visibility = Visibility.Visible;
-                    windowPanelDefinition.Height = new GridLength(17);
+                    windowPanelDefinition.Height = new GridLength(maxvalue);
                     IsWindowPanelShow = false;
                 }
+                return;
             }
             else if (!IsWindowPanelShow)
             {
                 if (Keyboard.Modifiers == ModifierKeys.Control && e.Key == Key.H)
                 {
                     GridwindowPanel.Visibility = Visibility.Hidden;
-                    windowPanelDefinition.Height = new GridLength(0);
+                    windowPanelDefinition.Height = new GridLength(minvalue);
                     IsWindowPanelShow = true;
                 }
+                return;
             }
 
         }
@@ -206,7 +215,8 @@ namespace MemoMinder
                 ImageBrush imageBrush = new ImageBrush(bitmap);
                 Background = imageBrush;
             }
-            else Background = dataMemo.BackgroundWindow;
+            else 
+                Background = dataMemo.BackgroundWindow;
 
 
             if (!string.IsNullOrEmpty(dataMemo.BackgroundTextBoxPath))
@@ -215,10 +225,13 @@ namespace MemoMinder
                 ImageBrush imageBrush = new ImageBrush(bitmap);
                 textbox.Background = imageBrush;
             }
-            else textbox.Background = MainWindow.dataMemo.BackgroundTextBox;
+            else 
+                textbox.Background = MainWindow.dataMemo.BackgroundTextBox;
 
-            if (dataMemo.IsCaptionActive) caption.Height = new GridLength(17);
-            else caption.Height = new GridLength(0);
+            if (dataMemo.IsCaptionActive) 
+                caption.Height = new GridLength(17);
+            else 
+                caption.Height = new GridLength(0);
 
             if (dataMemo.IsToggleWindow)
             {
@@ -230,9 +243,10 @@ namespace MemoMinder
                 ResizeMode = ResizeMode.CanResize;
                 Topmost = false;
             }
-            if (dataMemo.VerticalScrollBarVisibility == true) textbox.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
-
-            else textbox.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
+            if (dataMemo.VerticalScrollBarVisibility == true) 
+                textbox.VerticalScrollBarVisibility = ScrollBarVisibility.Visible;
+            else 
+                textbox.VerticalScrollBarVisibility = ScrollBarVisibility.Hidden;
 
             textbox.Text = dataMemo.MemoText;
             textbox.FontSize = dataMemo.TextBoxFontSize;
@@ -264,23 +278,26 @@ namespace MemoMinder
             if (tempCursor <= textbox.Text.Length) textbox.SelectionStart = temptext.Length + 2;
             else textbox.SelectionStart = textbox.Text.Length;
             dataMemo.MemoText = textbox.Text;
-
-            //if (int.TryParse(matches[0].Groups[1].Value, out int CountCircles))
-            //{
-
-            //    textbox.Text = Regex.Replace(textbox.Text, @"\.-(\d+) ", string.Concat(Enumerable.Repeat("● \n", CountCircles)));
-            //    MessageBox.Show($"{textbox.Text}\n{textbox.SelectionStart}\n Text-length: {textbox.Text.Length}\nCountCirclesLength: {CountCircles * 2}");
-            //    textbox.SelectionStart = textbox.Text.Length - CountCircles * 2 - 9;
-
-
-            //}
-            // if (previousCursorPosition <= textbox.Text.Length) textbox.SelectionStart = previousCursorPosition;
-            // else textbox.SelectionStart = textbox.Text.Length;
         }
         private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             dataMemo.WidthWindow = e.NewSize.Width;
             dataMemo.HeightWindow = e.NewSize.Height;
+        }
+
+        private void textbox_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            TextBox temp = (TextBox)sender;
+            float scrollvalue = 1.0F; 
+            if (e.Delta > 0)
+                temp.FontSize += scrollvalue;
+            else
+            {
+                if (temp.FontSize - scrollvalue <= 1.0) //1.0 text size threshold, cuz if e.Delta < 0.4 - program crashes 
+                    return;
+                temp.FontSize -= scrollvalue;
+            }
+            dataMemo.TextBoxFontSize = temp.FontSize;
         }
     }
     

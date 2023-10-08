@@ -320,7 +320,7 @@ namespace MemoMinder.SettingsApp
             backgroundTextBoxSettings.Text = string.IsNullOrEmpty(dataMemo.BackgroundTextBoxPath) ? Convert.ToString(dataMemo.BackgroundTextBox) : dataMemo.BackgroundTextBoxPath;
             textBoxForegroundSettings.Text = Convert.ToString(dataMemo.TextBoxForeground);
             captionForegroundSettings.Text = Convert.ToString(dataMemo.CaptionForeground);
-            captionFontSizeSettings.Text = Convert.ToString(dataMemo.CaptionFontSize);
+            captionFontSizeSettings.Text = $"{Convert.ToString(dataMemo.CaptionFontSize)}:5F";
             textBoxMarginSettings.Text = Convert.ToString(dataMemo.TextBoxMargin);
             heightWindowSettings.Text = Convert.ToString(dataMemo.HeightWindow);
             widthWindowSettings.Text = Convert.ToString(dataMemo.WidthWindow);
